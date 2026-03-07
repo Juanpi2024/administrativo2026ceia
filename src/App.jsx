@@ -26,7 +26,7 @@ export default function App() {
         width: '100%',
         border: '1px solid rgba(255, 255, 255, 0.15)'
       }}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div
             className="flex items-center gap-2"
             style={{ cursor: 'pointer', transition: 'transform 0.2s', padding: '0.2rem' }}
@@ -39,8 +39,15 @@ export default function App() {
             </div>
             <h1 style={{ fontSize: '1.15rem', color: 'white', margin: 0, fontWeight: 700, letterSpacing: '0.5px' }}>Portal CEIA</h1>
           </div>
-          <div style={{ fontSize: '0.8rem', opacity: 0.8, background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.75rem', borderRadius: '99px' }}>
-            Sistema Administrativo
+
+          <div className="flex items-center gap-4">
+            <div style={{ background: 'white', borderRadius: '8px', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'center' }}>
+              <img src="./logos.png" alt="Logos CEIA" style={{ height: '40px', objectFit: 'contain' }} onError={(e) => e.currentTarget.style.display = 'none'} />
+            </div>
+
+            <div style={{ fontSize: '0.8rem', opacity: 0.8, background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.75rem', borderRadius: '99px' }} className="hidden sm:block">
+              Sistema Administrativo
+            </div>
           </div>
         </div>
       </header>
