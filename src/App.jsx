@@ -1,582 +1,410 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Search, Plus, Users, ArrowLeft, Download, Eye, Calendar, ChevronDown } from 'lucide-react';
+import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle } from 'lucide-react';
 import { users } from './data/users';
-import { initialOficios } from './data/oficios';
-import { initialPermisos } from './data/permisos';
+import { loadOficios, loadPermisos, saveOficio, savePermiso, getNextCorrelative, checkPermisosDays } from './services/db';
+import { sendPermisoEmail } from './services/email';
 import './index.css';
 
-// Sort users alphabetically for the selector
 const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
 export default function App() {
-  // Try to restore user from localStorage
-  const [currentUser, setCurrentUser] = useState(() => {
-    const savedUserId = localStorage.getItem('currentUserId');
-    if (savedUserId) {
-      return users.find(u => u.id === parseInt(savedUserId)) || null;
-    }
-    return null;
-  });
-
-  const [userSearch, setUserSearch] = useState('');
-
-  // App State
-  const [module, setModule] = useState('oficios');
-  const [view, setView] = useState('dashboard');
-
-  // Persisted Data State
-  const [oficios, setOficios] = useState(() => {
-    const saved = localStorage.getItem('oficios');
-    return saved ? JSON.parse(saved) : initialOficios;
-  });
-
-  const [permisos, setPermisos] = useState(() => {
-    const saved = localStorage.getItem('permisos');
-    return saved ? JSON.parse(saved) : initialPermisos;
-  });
-
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // Sync to localStorage
-  useEffect(() => {
-    localStorage.setItem('oficios', JSON.stringify(oficios));
-  }, [oficios]);
-
-  useEffect(() => {
-    localStorage.setItem('permisos', JSON.stringify(permisos));
-  }, [permisos]);
-
-  // Save selected user to localStorage
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('currentUserId', currentUser.id.toString());
-    }
-  }, [currentUser]);
-
-  // --- USER SELECTION ---
-  const handleUserSelect = (user) => {
-    setCurrentUser(user);
-    setUserSearch('');
-  };
-
-  const handleChangeUser = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('currentUserId');
-    setView('dashboard');
-    setModule('oficios');
-  };
-
-  // Filter users for search
-  const filteredUsers = sortedUsers.filter(user =>
-    user.name.toLowerCase().includes(userSearch.toLowerCase())
-  );
-
-  // --- APP LOGIC ---
-  const canEmitOficio = currentUser?.role === 'emisor' || currentUser?.role === 'administrador';
-
-  const filteredOficios = oficios.filter(oficio => {
-    const searchLow = searchTerm.toLowerCase();
-    return (
-      oficio.id.toLowerCase().includes(searchLow) ||
-      oficio.materia.toLowerCase().includes(searchLow) ||
-      oficio.destinatario.toLowerCase().includes(searchLow) ||
-      oficio.emisorNombre.toLowerCase().includes(searchLow)
-    );
-  });
-
-  const filteredPermisos = permisos.filter(perm => {
-    const searchLow = searchTerm.toLowerCase();
-    return (
-      perm.id.toLowerCase().includes(searchLow) ||
-      perm.funcionarioNombre.toLowerCase().includes(searchLow) ||
-      perm.tipoPermiso.toLowerCase().includes(searchLow)
-    );
-  });
-
-  const handleCreateOficio = (newOficio) => {
-    setOficios([newOficio, ...oficios]);
-    setView('dashboard');
-  };
-
-  const handleCreatePermiso = (newPermiso) => {
-    setPermisos([newPermiso, ...permisos]);
-    setView('dashboard');
-  };
-
-  // --- USER SELECTOR SCREEN ---
-  if (!currentUser) {
-    return (
-      <div className="selector-page">
-        <div className="selector-container animate-fade-in">
-          <div className="selector-header">
-            <div className="selector-icon">
-              <Users size={36} />
-            </div>
-            <h1 className="selector-title">Portal Administrativo</h1>
-            <p className="selector-subtitle">CEIA — Ilustre Municipalidad de Parral</p>
-            <p className="selector-hint">Seleccione su nombre para ingresar</p>
-          </div>
-
-          {/* Search */}
-          <div className="selector-search-wrap">
-            <Search size={18} className="selector-search-icon" />
-            <input
-              type="text"
-              className="selector-search"
-              placeholder="Buscar funcionario..."
-              value={userSearch}
-              onChange={(e) => setUserSearch(e.target.value)}
-              autoFocus
-            />
-          </div>
-
-          {/* User List */}
-          <div className="selector-list">
-            {filteredUsers.length > 0 ? filteredUsers.map(user => (
-              <button
-                key={user.id}
-                className="selector-item"
-                onClick={() => handleUserSelect(user)}
-              >
-                <div className="selector-item-avatar">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="selector-item-info">
-                  <span className="selector-item-name">{user.name}</span>
-                  <span className="selector-item-role">
-                    {user.role === 'administrador' ? '🔑 Administrador' :
-                      user.role === 'emisor' ? '✏️ Emisor' : '📄 Lector'}
-                    {user.sub_role ? ` — ${user.sub_role}` : ''}
-                  </span>
-                </div>
-                <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', opacity: 0.4 }} />
-              </button>
-            )) : (
-              <div className="selector-empty">
-                No se encontraron funcionarios con ese nombre.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const [view, setView] = useState('home'); // home, oficio, permiso, dashboard
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
       <header style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '1rem 0', boxShadow: 'var(--shadow-md)' }}>
         <div className="container flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-2"
+            style={{ cursor: 'pointer' }}
+            onClick={() => setView('home')}
+          >
             <FileText size={24} />
             <h1 style={{ fontSize: '1.25rem', color: 'white', margin: 0 }}>Portal CEIA</h1>
           </div>
-          <div className="flex items-center gap-4">
-            <div style={{ fontSize: '0.875rem', textAlign: 'right' }}>
-              <div className="font-semibold">{currentUser.name}</div>
-              <div style={{ opacity: 0.8 }}>Rol: {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}</div>
-            </div>
-            <button onClick={handleChangeUser} className="btn-change-user" title="Cambiar Usuario">
-              <Users size={18} />
-              <span>Cambiar</span>
-            </button>
+          <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
+            Sistema Administrativo
           </div>
         </div>
       </header>
 
-      {/* Tabs */}
-      {view === 'dashboard' && (
-        <div style={{ backgroundColor: 'white', borderBottom: '1px solid var(--border)' }}>
-          <div className="container flex gap-4" style={{ padding: '0.5rem 1.5rem' }}>
-            <button
-              onClick={() => setModule('oficios')}
-              className={`btn ${module === 'oficios' ? 'btn-primary' : 'text-muted'}`}
-              style={module !== 'oficios' ? { background: 'transparent', color: 'var(--text-color)' } : {}}
-            >
-              <FileText size={18} />
-              Registro de Oficios
-            </button>
-            <button
-              onClick={() => setModule('permisos')}
-              className={`btn ${module === 'permisos' ? 'btn-primary' : 'text-muted'}`}
-              style={module !== 'permisos' ? { background: 'transparent', color: 'var(--text-color)' } : {}}
-            >
-              <Calendar size={18} />
-              Permisos Administrativos
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <main className="container p-6 animate-fade-in" style={{ flexGrow: 1 }}>
-
-        {view === 'dashboard' && module === 'oficios' && (
-          <>
-            <div className="flex items-center justify-between mb-8" style={{ flexWrap: 'wrap', gap: '1rem' }}>
-              <div style={{ position: 'relative', maxWidth: '400px', width: '100%' }}>
-                <Search size={20} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="Buscar oficios por materia, número..."
-                  style={{ paddingLeft: '2.5rem' }}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-
-              {canEmitOficio && (
-                <button className="btn btn-primary" onClick={() => setView('new-oficio')}>
-                  <Plus size={20} />
-                  Nuevo Oficio
-                </button>
-              )}
-            </div>
-
-            <div className="card table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nº Oficio</th>
-                    <th>Fecha</th>
-                    <th>Emisor</th>
-                    <th>Destinatario</th>
-                    <th>Materia</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOficios.length > 0 ? filteredOficios.map(oficio => (
-                    <tr key={oficio.id}>
-                      <td className="font-semibold">{oficio.id}</td>
-                      <td>{oficio.fechaEmision}</td>
-                      <td>{oficio.emisorNombre}</td>
-                      <td>{oficio.destinatario}</td>
-                      <td>{oficio.materia}</td>
-                      <td>
-                        <span className={`badge ${oficio.estado === 'Vigente' ? 'badge-green' : 'badge-gray'}`}>
-                          {oficio.estado}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem' }} title="Ver Detalle">
-                            <Eye size={16} />
-                          </button>
-                          <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem' }} title="Descargar PDF">
-                            <Download size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr>
-                      <td colSpan="7" className="text-center p-6 text-muted">
-                        No se encontraron oficios que coincidan con la búsqueda.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-
-        {view === 'dashboard' && module === 'permisos' && (
-          <>
-            <div className="flex items-center justify-between mb-8" style={{ flexWrap: 'wrap', gap: '1rem' }}>
-              <div style={{ position: 'relative', maxWidth: '400px', width: '100%' }}>
-                <Search size={20} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="Buscar por nombre, número o tipo..."
-                  style={{ paddingLeft: '2.5rem' }}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-
-              <button className="btn btn-primary" onClick={() => setView('new-permiso')}>
-                <Plus size={20} />
-                Solicitar Permiso
-              </button>
-            </div>
-
-            <div className="card table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>ID Permiso</th>
-                    <th>Fecha Solicitud</th>
-                    <th>Funcionario</th>
-                    <th>Tipo</th>
-                    <th>Inicio</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPermisos.length > 0 ? filteredPermisos.map(permiso => (
-                    <tr key={permiso.id}>
-                      <td className="font-semibold">{permiso.id}</td>
-                      <td>{permiso.fechaSolicitud}</td>
-                      <td>{permiso.funcionarioNombre}</td>
-                      <td>{permiso.tipoPermiso}</td>
-                      <td>{permiso.fechaInicio}</td>
-                      <td>
-                        <span className={`badge ${permiso.estado === 'Aprobado' ? 'badge-green' :
-                          permiso.estado === 'Rechazado' ? 'badge-gray' : 'badge-gray'
-                          }`} style={permiso.estado === 'Pendiente' ? { backgroundColor: '#fef08a', color: '#854d0e' } : {}}>
-                          {permiso.estado}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem' }} title="Ver Detalle">
-                            <Eye size={16} />
-                          </button>
-                          <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem' }} title="Descargar PDF">
-                            <Download size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr>
-                      <td colSpan="7" className="text-center p-6 text-muted">
-                        No se encontraron permisos.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-
-        {view === 'new-oficio' && (
-          <NewOficioForm
-            currentUser={currentUser}
-            onCancel={() => setView('dashboard')}
-            onSave={handleCreateOficio}
-            nextCorrelative={`OF-2026-${(oficios.length + 1).toString().padStart(3, '0')}`}
-          />
-        )}
-
-        {view === 'new-permiso' && (
-          <NewPermisoForm
-            currentUser={currentUser}
-            onCancel={() => setView('dashboard')}
-            onSave={handleCreatePermiso}
-            nextCorrelative={`PA-2026-${(permisos.length + 1).toString().padStart(3, '0')}`}
-          />
-        )}
+      <main className="container p-6 animate-fade-in" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+        {view === 'home' && <HomeScreen setView={setView} />}
+        {view === 'oficio' && <OficioForm setView={setView} />}
+        {view === 'permiso' && <PermisoForm setView={setView} />}
+        {view === 'dashboard' && <Dashboard setView={setView} />}
       </main>
     </div>
   );
 }
 
-// Subcomponent for the Oficio Form
-function NewOficioForm({ currentUser, onCancel, onSave, nextCorrelative }) {
-  const [formData, setFormData] = useState({
-    destinatario: '',
-    materia: '',
-    descripcion: '',
-  });
+function HomeScreen({ setView }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
+      <div className="text-center mb-8">
+        <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>Bienvenido al Portal</h2>
+        <p className="text-muted">¿Qué trámite deseas realizar hoy?</p>
+      </div>
 
-  const handleSubmit = (e) => {
+      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '800px' }}>
+        <button
+          className="card hover-scale"
+          style={{ width: '280px', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
+          onClick={() => setView('oficio')}
+        >
+          <div style={{ background: '#dbeafe', color: '#1e40af', padding: '1.5rem', borderRadius: '50%', marginBottom: '1rem' }}>
+            <FileText size={48} />
+          </div>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Registrar Oficio</h3>
+          <p className="text-muted" style={{ fontSize: '0.875rem' }}>Generar documento y asignar número correlativo automáticamente.</p>
+        </button>
+
+        <button
+          className="card hover-scale"
+          style={{ width: '280px', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
+          onClick={() => setView('permiso')}
+        >
+          <div style={{ background: '#dcfce7', color: '#166534', padding: '1.5rem', borderRadius: '50%', marginBottom: '1rem' }}>
+            <Calendar size={48} />
+          </div>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Registrar Permiso</h3>
+          <p className="text-muted" style={{ fontSize: '0.875rem' }}>Solicitar día administrativo o permisos especiales.</p>
+        </button>
+      </div>
+
+      <div className="mt-8">
+        <button
+          className="btn btn-outline"
+          style={{ gap: '0.5rem' }}
+          onClick={() => setView('dashboard')}
+        >
+          <LayoutDashboard size={18} />
+          Ir al Panel de Control Completo
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function OficioForm({ setView }) {
+  const [formData, setFormData] = useState({ emisorId: '', destinatario: '', materia: '', descripcion: '' });
+  const [loading, setLoading] = useState(false);
+  const [successId, setSuccessId] = useState(null);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newOficio = {
-      id: nextCorrelative,
-      fechaEmision: new Date().toISOString().split('T')[0],
-      fechaRegistro: new Date().toISOString().split('T')[0],
-      emisorId: currentUser.id,
-      emisorNombre: currentUser.name,
-      destinatario: formData.destinatario,
-      materia: formData.materia,
-      descripcion: formData.descripcion,
-      estado: 'Vigente',
-      archivo: 'pendiente.pdf'
-    };
-    onSave(newOficio);
+    if (!formData.emisorId) return alert('Debes seleccionar quién eres.');
+    setLoading(true);
+
+    try {
+      const emisor = sortedUsers.find(u => u.id === parseInt(formData.emisorId));
+      const oficioData = {
+        emisorId: emisor.id,
+        emisorNombre: emisor.name,
+        destinatario: formData.destinatario,
+        materia: formData.materia,
+        descripcion: formData.descripcion,
+        estado: 'Vigente'
+      };
+
+      const saved = await saveOficio(oficioData);
+      setSuccessId(saved.id);
+    } catch (error) {
+      alert("Error al guardar: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (successId) {
+    return (
+      <div className="card text-center animate-fade-in" style={{ maxWidth: '500px', margin: '3rem auto', padding: '3rem' }}>
+        <div style={{ background: '#dcfce7', color: '#166534', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+          <Save size={40} />
+        </div>
+        <h2 style={{ color: 'var(--primary)' }}>Oficio Registrado Exitosamente</h2>
+        <p className="text-muted mb-4">El documento ha sido guardado en los registros.</p>
+        <div style={{ background: 'var(--background)', padding: '1rem', borderRadius: 'var(--radius)', fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '2px', color: '#1e3a8a', marginBottom: '2rem' }}>
+          {successId}
+        </div>
+        <button className="btn btn-primary" onClick={() => setView('home')}>Volver al Inicio</button>
+      </div>
+    );
+  }
 
   return (
     <div className="card animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto' }}>
-      <button onClick={onCancel} className="btn" style={{ padding: 0, marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
-        <ArrowLeft size={20} />
-        <span style={{ marginLeft: '0.25rem' }}>Volver al Panel</span>
+      <button onClick={() => setView('home')} className="btn" style={{ padding: 0, marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
+        <ArrowLeft size={20} /><span style={{ marginLeft: '0.25rem' }}>Volver</span>
       </button>
 
       <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Registrar Nuevo Oficio</h2>
-
-      <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: 'var(--radius)', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span className="text-muted">Correlativo Asignado:</span>
-          <span className="font-semibold" style={{ color: 'var(--primary)' }}>{nextCorrelative}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span className="text-muted">Emisor:</span>
-          <span className="font-semibold">{currentUser.name}</span>
-        </div>
-      </div>
+      <p className="text-muted mb-4" style={{ fontSize: '0.875rem' }}>Complete los datos del documento. El correlativo se generará automáticamente al guardar para evitar duplicados.</p>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div>
-          <label className="input-label">Destinatario</label>
-          <input
-            type="text"
-            className="input-field"
-            placeholder="Ej. DAEM, Ministerio, Apoderado..."
-            required
-            value={formData.destinatario}
-            onChange={(e) => setFormData({ ...formData, destinatario: e.target.value })}
-          />
+          <label className="input-label">¿Quién emite el oficio?</label>
+          <select className="input-field" required value={formData.emisorId} onChange={e => setFormData({ ...formData, emisorId: e.target.value })}>
+            <option value="">-- Seleccionar Nombre --</option>
+            {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </select>
         </div>
-
+        <div>
+          <label className="input-label">Destinatario</label>
+          <input type="text" className="input-field" placeholder="Ej. Ministerio de Educación..." required value={formData.destinatario} onChange={e => setFormData({ ...formData, destinatario: e.target.value })} />
+        </div>
         <div>
           <label className="input-label">Materia o Asunto</label>
-          <input
-            type="text"
-            className="input-field"
-            placeholder="Título breve del documento"
-            required
-            value={formData.materia}
-            onChange={(e) => setFormData({ ...formData, materia: e.target.value })}
-          />
+          <input type="text" className="input-field" placeholder="Título breve del documento..." required value={formData.materia} onChange={e => setFormData({ ...formData, materia: e.target.value })} />
         </div>
-
         <div>
           <label className="input-label">Descripción</label>
-          <textarea
-            className="input-field"
-            rows="4"
-            placeholder="Resumen del contenido del oficio..."
-            required
-            value={formData.descripcion}
-            onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-          />
-        </div>
-
-        <div>
-          <label className="input-label">Archivo PDF (Opcional en esta maqueta)</label>
-          <input type="file" className="input-field" accept="application/pdf" />
+          <textarea className="input-field" rows="4" placeholder="Breve resumen del contenido..." required value={formData.descripcion} onChange={e => setFormData({ ...formData, descripcion: e.target.value })} />
         </div>
 
         <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end' }}>
-          <button type="button" className="btn btn-outline" onClick={onCancel}>Cancelar</button>
-          <button type="submit" className="btn btn-primary">Registrar y Guardar</button>
+          <button type="button" className="btn btn-outline" onClick={() => setView('home')} disabled={loading}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={loading}>
+            {loading ? 'Generando...' : 'Generar y Registrar Oficio'}
+          </button>
         </div>
       </form>
     </div>
   );
 }
 
-// Subcomponent for the Permiso Form
-function NewPermisoForm({ currentUser, onCancel, onSave, nextCorrelative }) {
-  const [formData, setFormData] = useState({
-    tipoPermiso: 'Día Administrativo',
-    fechaInicio: '',
-    fechaFin: '',
-    motivo: '',
-  });
+function PermisoForm({ setView }) {
+  const [formData, setFormData] = useState({ funcionarioId: '', tipoPermiso: 'Día Administrativo', fechaInicio: '', fechaFin: '', motivo: '' });
+  const [daysInfo, setDaysInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingDays, setLoadingDays] = useState(false);
+  const [successId, setSuccessId] = useState(null);
 
-  const handleSubmit = (e) => {
+  // Re-check days automatically when user changes
+  useEffect(() => {
+    if (formData.funcionarioId) {
+      setLoadingDays(true);
+      checkPermisosDays(parseInt(formData.funcionarioId)).then(info => {
+        setDaysInfo(info);
+        setLoadingDays(false);
+      });
+    } else {
+      setDaysInfo(null);
+    }
+  }, [formData.funcionarioId]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newPermiso = {
-      id: nextCorrelative,
-      fechaSolicitud: new Date().toISOString().split('T')[0],
-      funcionarioId: currentUser.id,
-      funcionarioNombre: currentUser.name,
-      tipoPermiso: formData.tipoPermiso,
-      fechaInicio: formData.fechaInicio,
-      fechaFin: formData.fechaFin,
-      motivo: formData.motivo,
-      estado: 'Pendiente'
-    };
-    onSave(newPermiso);
+    if (!formData.funcionarioId) return alert('Debes seleccionar quién eres.');
+
+    // Validar si es Dia Administrativo y excede 6 dias
+    if (formData.tipoPermiso === 'Día Administrativo' && daysInfo) {
+      // Calculo burdo para validar (1 día o rango)
+      const start = new Date(formData.fechaInicio);
+      const end = new Date(formData.fechaFin);
+      const requested = Math.abs(Math.ceil((end - start) / (1000 * 60 * 60 * 24))) + 1;
+      if (requested > daysInfo.left) {
+        return alert(`¡Error! Estás pidiendo ${requested} día(s), pero solo te quedan ${daysInfo.left} disponibles según nuestros registros.`);
+      }
+    }
+
+    setLoading(true);
+    try {
+      const func = sortedUsers.find(u => u.id === parseInt(formData.funcionarioId));
+      const permisoData = {
+        funcionarioId: func.id,
+        funcionarioNombre: func.name,
+        funcionarioEmail: func.email,
+        tipoPermiso: formData.tipoPermiso,
+        fechaInicio: formData.fechaInicio,
+        fechaFin: formData.fechaFin,
+        motivo: formData.motivo,
+        estado: 'Autorizado' // Segun logica nueva, se registra lo ya autorizado
+      };
+
+      const saved = await savePermiso(permisoData);
+
+      // Send Email!
+      const finalTaken = (daysInfo?.taken || 0) + saved.diasUsados;
+      const finalLeft = 6 - finalTaken;
+      await sendPermisoEmail(func.email, func.name, finalTaken, finalLeft, saved);
+
+      setSuccessId(saved.id);
+    } catch (error) {
+      alert("Error al guardar: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (successId) {
+    return (
+      <div className="card text-center animate-fade-in" style={{ maxWidth: '500px', margin: '3rem auto', padding: '3rem' }}>
+        <div style={{ background: '#dcfce7', color: '#166534', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+          <Save size={40} />
+        </div>
+        <h2 style={{ color: 'var(--primary)' }}>Permiso Guardado Exitosamente</h2>
+        <p className="text-muted mb-4">El comprobante ha sido registrado y se ha enviado un correo de respaldo incluyendo el balance de tus días.</p>
+        <div style={{ background: 'var(--background)', padding: '1rem', borderRadius: 'var(--radius)', fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '2px', color: '#1e3a8a', marginBottom: '2rem' }}>
+          {successId}
+        </div>
+        <button className="btn btn-primary" onClick={() => setView('home')}>Volver al Inicio</button>
+      </div>
+    );
+  }
 
   return (
     <div className="card animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto' }}>
-      <button onClick={onCancel} className="btn" style={{ padding: 0, marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
-        <ArrowLeft size={20} />
-        <span style={{ marginLeft: '0.25rem' }}>Volver al Panel</span>
+      <button onClick={() => setView('home')} className="btn" style={{ padding: 0, marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
+        <ArrowLeft size={20} /><span style={{ marginLeft: '0.25rem' }}>Volver</span>
       </button>
 
-      <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Solicitar Permiso Administrativo</h2>
+      <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Registrar Permiso Administrativo (Autorizado)</h2>
 
-      <div style={{ padding: '1rem', backgroundColor: '#f8fafc', borderRadius: 'var(--radius)', marginBottom: '1.5rem', border: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span className="text-muted">ID Solicitud:</span>
-          <span className="font-semibold" style={{ color: 'var(--primary)' }}>{nextCorrelative}</span>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span className="text-muted">Funcionario:</span>
-          <span className="font-semibold">{currentUser.name}</span>
-        </div>
+      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+        <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
+        <p style={{ fontSize: '0.875rem', margin: 0 }}><strong>Nota Importante:</strong> Este módulo es para registrar permisos que <u>ya fueron aprobados</u> previamente. El sistema alertará o bloqueará si se exceden los 6 días anuales permitidos.</p>
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div>
+          <label className="input-label">Funcionario</label>
+          <select className="input-field" required value={formData.funcionarioId} onChange={e => setFormData({ ...formData, funcionarioId: e.target.value })}>
+            <option value="">-- Seleccionar Funcionario --</option>
+            {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+          </select>
+        </div>
+
+        {loadingDays && <p className="text-muted" style={{ fontSize: '0.875rem' }}>Calculando días disponibles...</p>}
+        {daysInfo && (
+          <div style={{ padding: '0.75rem', backgroundColor: '#f8fafc', border: '1px solid var(--border)', borderRadius: 'var(--radius)', display: 'flex', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-main)' }}>Histórico Días Usados: <strong>{daysInfo.taken}</strong></span>
+            <span style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 'bold' }}>Disponibles: {daysInfo.left}</span>
+          </div>
+        )}
+
+        <div>
           <label className="input-label">Tipo de Permiso</label>
-          <select
-            className="input-field"
-            value={formData.tipoPermiso}
-            onChange={(e) => setFormData({ ...formData, tipoPermiso: e.target.value })}
-            required
-          >
-            <option value="Día Administrativo">Día Administrativo</option>
+          <select className="input-field" value={formData.tipoPermiso} onChange={(e) => setFormData({ ...formData, tipoPermiso: e.target.value })} required>
+            <option value="Día Administrativo">Día Administrativo (Carga a los 6 días)</option>
             <option value="Día de Cumpleaños">Día de Cumpleaños</option>
             <option value="Permiso por Matrimonio / Unión Civil">Permiso por Matrimonio / Unión Civil</option>
             <option value="Permiso por Fallecimiento">Permiso por Fallecimiento (Familiar Directo)</option>
-            <option value="Otro">Otro (Especificar en motivo)</option>
+            <option value="Justificación Médica">Justificación Médica</option>
           </select>
         </div>
 
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div style={{ flex: 1 }}>
             <label className="input-label">Fecha Inicio</label>
-            <input
-              type="date"
-              className="input-field"
-              required
-              value={formData.fechaInicio}
-              onChange={(e) => setFormData({ ...formData, fechaInicio: e.target.value })}
-            />
+            <input type="date" className="input-field" required value={formData.fechaInicio} onChange={(e) => setFormData({ ...formData, fechaInicio: e.target.value })} />
           </div>
           <div style={{ flex: 1 }}>
-            <label className="input-label">Fecha Fin</label>
-            <input
-              type="date"
-              className="input-field"
-              required
-              value={formData.fechaFin}
-              onChange={(e) => setFormData({ ...formData, fechaFin: e.target.value })}
-            />
+            <label className="input-label">Fecha Fin (inclusive)</label>
+            <input type="date" className="input-field" required value={formData.fechaFin} onChange={(e) => setFormData({ ...formData, fechaFin: e.target.value })} />
           </div>
         </div>
 
         <div>
-          <label className="input-label">Motivo o Justificación</label>
-          <textarea
-            className="input-field"
-            rows="3"
-            placeholder="Breve justificación de la solicitud..."
-            required
-            value={formData.motivo}
-            onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
-          />
+          <label className="input-label">Motivo u Observación</label>
+          <textarea className="input-field" rows="3" placeholder="Información adicional del permiso..." required value={formData.motivo} onChange={(e) => setFormData({ ...formData, motivo: e.target.value })} />
         </div>
 
         <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end' }}>
-          <button type="button" className="btn btn-outline" onClick={onCancel}>Cancelar</button>
-          <button type="submit" className="btn btn-primary">Enviar Solicitud</button>
+          <button type="button" className="btn btn-outline" onClick={() => setView('home')} disabled={loading}>Cancelar</button>
+          <button type="submit" className="btn btn-primary" disabled={loading || (formData.tipoPermiso === 'Día Administrativo' && daysInfo && daysInfo.left <= 0)}>
+            {loading ? 'Guardando y Enviando Correo...' : 'Registrar y Notificar'}
+          </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+function Dashboard({ setView }) {
+  const [tab, setTab] = useState('oficios');
+  const [oficios, setOficios] = useState([]);
+  const [permisos, setPermisos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      const o = await loadOficios();
+      const p = await loadPermisos();
+      setOficios(o);
+      setPermisos(p);
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  return (
+    <div className="animate-fade-in" style={{ flexGrow: 1 }}>
+      <button onClick={() => setView('home')} className="btn" style={{ padding: 0, marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
+        <ArrowLeft size={20} /><span style={{ marginLeft: '0.25rem' }}>Volver al Menú Principal</span>
+      </button>
+
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="card" style={{ flex: 1, borderTop: '4px solid var(--primary)' }}>
+          <p className="text-muted" style={{ fontSize: '0.875rem' }}>Total Oficios Emitidos</p>
+          <h3 style={{ fontSize: '2rem' }}>{oficios.length}</h3>
+        </div>
+        <div className="card" style={{ flex: 1, borderTop: '4px solid #166534' }}>
+          <p className="text-muted" style={{ fontSize: '0.875rem' }}>Total Permisos Registrados</p>
+          <h3 style={{ fontSize: '2rem' }}>{permisos.length}</h3>
+        </div>
+      </div>
+
+      <div style={{ backgroundColor: 'white', borderBottom: '1px solid var(--border)', marginBottom: '1.5rem' }}>
+        <div className="flex gap-4">
+          <button onClick={() => setTab('oficios')} className={`btn ${tab === 'oficios' ? 'btn-primary' : 'text-muted'}`} style={tab !== 'oficios' ? { background: 'transparent', color: 'var(--text-color)' } : {}}>
+            Oficios
+          </button>
+          <button onClick={() => setTab('permisos')} className={`btn ${tab === 'permisos' ? 'btn-primary' : 'text-muted'}`} style={tab !== 'permisos' ? { background: 'transparent', color: 'var(--text-color)' } : {}}>
+            Permisos
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="text-center text-muted">Cargando base de datos...</p>
+      ) : tab === 'oficios' ? (
+        <div className="card table-container">
+          <table>
+            <thead><tr><th>Nº Oficio</th><th>Fecha</th><th>Emisor</th><th>Destinatario</th><th>Materia</th></tr></thead>
+            <tbody>
+              {oficios.map(o => (
+                <tr key={o.id}>
+                  <td className="font-semibold">{o.id}</td>
+                  <td>{new Date(o.createdAt || o.fechaEmision).toLocaleDateString()}</td>
+                  <td>{o.emisorNombre}</td>
+                  <td>{o.destinatario}</td>
+                  <td>{o.materia}</td>
+                </tr>
+              ))}
+              {oficios.length === 0 && <tr><td colSpan="5" className="text-center">No hay oficios.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="card table-container">
+          <table>
+            <thead><tr><th>Nº Permiso</th><th>Fecha Registro</th><th>Funcionario</th><th>Fechas</th><th>Días</th></tr></thead>
+            <tbody>
+              {permisos.map(p => (
+                <tr key={p.id}>
+                  <td className="font-semibold">{p.id}</td>
+                  <td>{new Date(p.createdAt || new Date()).toLocaleDateString()}</td>
+                  <td>{p.funcionarioNombre}</td>
+                  <td>{p.fechaInicio} a {p.fechaFin}</td>
+                  <td><span className="badge badge-gray">{p.diasUsados}</span></td>
+                </tr>
+              ))}
+              {permisos.length === 0 && <tr><td colSpan="5" className="text-center">No hay permisos.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
