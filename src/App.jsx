@@ -87,7 +87,12 @@ function HomeScreen({ setView }) {
 }
 
 function OficioForm({ setView }) {
-  const [formData, setFormData] = useState({ emisorId: '', destinatario: '', materia: '', descripcion: '' });
+  const [formData, setFormData] = useState({
+    emisorId: localStorage.getItem('lastOficioUser') || '',
+    destinatario: '',
+    materia: '',
+    descripcion: ''
+  });
   const [loading, setLoading] = useState(false);
   const [successId, setSuccessId] = useState(null);
 
@@ -95,6 +100,9 @@ function OficioForm({ setView }) {
     e.preventDefault();
     if (!formData.emisorId) return alert('Debes seleccionar quién eres.');
     setLoading(true);
+
+    // Guardamos la preferencia en el navegador para auto-completar la próxima vez
+    localStorage.setItem('lastOficioUser', formData.emisorId);
 
     try {
       const emisor = sortedUsers.find(u => u.id === parseInt(formData.emisorId));
@@ -174,7 +182,14 @@ function OficioForm({ setView }) {
 }
 
 function PermisoForm({ setView }) {
-  const [formData, setFormData] = useState({ funcionarioId: '', tipoPermiso: 'Día Administrativo', jornada: 'Completa', fechaInicio: '', fechaFin: '', motivo: '' });
+  const [formData, setFormData] = useState({
+    funcionarioId: localStorage.getItem('lastPermisoUser') || '',
+    tipoPermiso: 'Día Administrativo',
+    jornada: 'Completa',
+    fechaInicio: '',
+    fechaFin: '',
+    motivo: ''
+  });
   const [daysInfo, setDaysInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingDays, setLoadingDays] = useState(false);
@@ -196,6 +211,9 @@ function PermisoForm({ setView }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.funcionarioId) return alert('Debes seleccionar quién eres.');
+
+    // Guardamos la preferencia de funcionario
+    localStorage.setItem('lastPermisoUser', formData.funcionarioId);
 
     // Validar si es Dia Administrativo y excede 6 dias
     if (formData.tipoPermiso === 'Día Administrativo' && daysInfo) {
