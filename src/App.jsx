@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2, MessageCircle } from 'lucide-react';
+import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2, MessageCircle, BarChart2, PieChart as PieChartIcon } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { users } from './data/users';
 import { loadOficios, loadPermisos, saveOficio, savePermiso, checkPermisosDays, deleteOficio, deletePermiso, updateOficio, updatePermiso } from './services/db';
 import { sendPermisoEmail } from './services/email';
@@ -541,6 +542,72 @@ function Dashboard({ setView }) {
           <h3 style={{ fontSize: '2rem' }}>{permisos.length}</h3>
         </div>
       </div>
+
+      {/* ZONA DE GRÁFICOS (Solo se muestra cuando hay algo de datos) */}
+      {!loading && (oficios.length > 0 || permisos.length > 0) && (
+        <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+          {/* Gráfico 1: Top Emisores de Oficios */}
+          {oficios.length > 0 && (
+            <div className="card" style={{ flex: '1 1 300px', padding: '1.5rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--text-color)', fontWeight: 600 }}>
+                <BarChart2 size={18} color="var(--primary)" /> Emisores más activos (Oficios)
+              </h4>
+              <div style={{ height: '250px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={
+                    Object.entries(oficios.reduce((acc, o) => {
+                      acc[o.emisorNombre] = (acc[o.emisorNombre] || 0) + 1;
+                      return acc;
+                    }, {})).map(([name, count]) => ({ name: name.split(' ')[0], count })).sort((a, b) => b.count - a.count).slice(0, 5)
+                  } margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                    <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dx={-10} />
+                    <RechartsTooltip cursor={{ fill: '#f1f5f9' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Bar dataKey="count" fill="var(--primary)" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Gráfico 2: Distribución de Permisos */}
+          {permisos.length > 0 && (
+            <div className="card" style={{ flex: '1 1 300px', padding: '1.5rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--text-color)', fontWeight: 600 }}>
+                <PieChartIcon size={18} color="#166534" /> Distribución de Jornadas (Permisos)
+              </h4>
+              <div style={{ height: '250px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={
+                        Object.entries(permisos.reduce((acc, p) => {
+                          const j = p.jornada || 'Completa';
+                          acc[j] = (acc[j] || 0) + 1;
+                          return acc;
+                        }, {})).map(([name, value]) => ({ name, value }))
+                      }
+                      cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value"
+                    >
+                      {Object.entries(permisos.reduce((acc, p) => {
+                        const j = p.jornada || 'Completa';
+                        acc[j] = (acc[j] || 0) + 1;
+                        return acc;
+                      }, {})).map(([name], index) => {
+                        const colors = { 'Completa': '#10b981', 'Medio Día (Mañana)': '#3b82f6', 'Medio Día (Tarde)': '#f59e0b' };
+                        return <Cell key={`cell-${index}`} fill={colors[name] || '#8b5cf6'} />;
+                      })}
+                    </Pie>
+                    <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ backgroundColor: 'white', borderBottom: '1px solid var(--border)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div className="flex gap-4">
