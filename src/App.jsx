@@ -437,6 +437,7 @@ function Dashboard({ setView }) {
 
   const [editingOficio, setEditingOficio] = useState(null);
   const [editingPermiso, setEditingPermiso] = useState(null);
+  const [historyFuncionario, setHistoryFuncionario] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -665,7 +666,15 @@ function Dashboard({ setView }) {
                 <tr key={p.id}>
                   <td className="font-semibold">{p.id}</td>
                   <td>{new Date(p.createdAt || new Date()).toLocaleDateString()}</td>
-                  <td>{p.funcionarioNombre}</td>
+                  <td>
+                    <span
+                      style={{ cursor: 'pointer', color: 'var(--primary)', textDecoration: 'underline', fontWeight: 500 }}
+                      onClick={() => setHistoryFuncionario({ id: p.funcionarioId, nombre: p.funcionarioNombre })}
+                      title="Ver historial de permisos"
+                    >
+                      {p.funcionarioNombre}
+                    </span>
+                  </td>
                   <td>{p.fechaInicio} a {p.fechaFin}</td>
                   <td>
                     <span className="badge badge-gray">{p.diasUsados}</span>
@@ -736,6 +745,52 @@ function Dashboard({ setView }) {
                 <button type="submit" className="btn btn-primary">Guardar Cambios</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE HISTORIAL POR FUNCIONARIO */}
+      {historyFuncionario && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: '1rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '650px', maxHeight: '80vh', overflowY: 'auto', animation: 'fadeIn 0.2s ease-out' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.25rem', color: 'var(--primary)', margin: 0 }}>
+                Historial: {historyFuncionario.nombre}
+              </h3>
+              <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem' }} onClick={() => setHistoryFuncionario(null)}>Cerrar</button>
+            </div>
+
+            <div className="table-container" style={{ margin: 0 }}>
+              <table style={{ minWidth: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '0.5rem' }}>Nº</th>
+                    <th style={{ padding: '0.5rem' }}>Registro</th>
+                    <th style={{ padding: '0.5rem' }}>Fechas</th>
+                    <th style={{ padding: '0.5rem' }}>Días</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {permisos.filter(p => p.funcionarioId === historyFuncionario.id).map(p => (
+                    <tr key={`history-${p.id}`}>
+                      <td style={{ padding: '0.5rem' }}>{p.id}</td>
+                      <td style={{ padding: '0.5rem' }}>{new Date(p.createdAt || new Date()).toLocaleDateString()}</td>
+                      <td style={{ padding: '0.5rem' }}>{p.fechaInicio} a {p.fechaFin}</td>
+                      <td style={{ padding: '0.5rem' }}>
+                        <span className="badge badge-gray">{p.diasUsados}</span>
+                        {p.jornada && p.jornada.includes('Medio') && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{p.jornada}</div>}
+                      </td>
+                    </tr>
+                  ))}
+                  {permisos.filter(p => p.funcionarioId === historyFuncionario.id).length === 0 && (
+                    <tr><td colSpan="4" className="text-center" style={{ padding: '1rem' }}>Sin registros.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ marginTop: '1.5rem', textAlign: 'right', fontWeight: 'bold', color: 'var(--text-color)' }}>
+              Total Días Usados: {permisos.filter(p => p.funcionarioId === historyFuncionario.id).reduce((sum, current) => sum + current.diasUsados, 0)} días
+            </div>
           </div>
         </div>
       )}
