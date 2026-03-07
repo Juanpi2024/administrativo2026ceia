@@ -102,7 +102,7 @@ function HomeScreen({ setView }) {
           <div style={{ background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', color: '#1e40af', padding: '1.75rem', borderRadius: '24px', marginBottom: '1.5rem', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.8)' }}>
             <FileText size={48} strokeWidth={1.5} />
           </div>
-          <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem', fontWeight: 600 }}>Registrar Oficio</h3>
+          <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem', fontWeight: 600 }}>Registro de oficios 2026</h3>
           <p className="text-muted" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>Generar documento y asignar número correlativo automáticamente.</p>
         </button>
 
@@ -114,7 +114,7 @@ function HomeScreen({ setView }) {
           <div style={{ background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', color: '#166534', padding: '1.75rem', borderRadius: '24px', marginBottom: '1.5rem', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.8)' }}>
             <Calendar size={48} strokeWidth={1.5} />
           </div>
-          <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem', fontWeight: 600 }}>Registrar Permiso</h3>
+          <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem', fontWeight: 600 }}>Registro de permisos administrativos 2026</h3>
           <p className="text-muted" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>Solicitar día y medio día administrativo.</p>
         </button>
       </div>
@@ -193,7 +193,7 @@ function OficioForm({ setView }) {
         <ArrowLeft size={20} /><span style={{ marginLeft: '0.25rem' }}>Volver</span>
       </button>
 
-      <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Registrar Nuevo Oficio</h2>
+      <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Registro de oficios 2026</h2>
       <p className="text-muted mb-4" style={{ fontSize: '0.875rem' }}>Complete los datos del documento. El correlativo se generará automáticamente al guardar para evitar duplicados.</p>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -334,7 +334,7 @@ function PermisoForm({ setView }) {
         <ArrowLeft size={20} /><span style={{ marginLeft: '0.25rem' }}>Volver</span>
       </button>
 
-      <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Registrar Permiso Administrativo (Autorizado)</h2>
+      <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Registro de permisos administrativos 2026</h2>
 
       <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
         <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
