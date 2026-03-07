@@ -11,18 +11,35 @@ export default function App() {
   const [view, setView] = useState('home'); // home, oficio, permiso, dashboard
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <header style={{ backgroundColor: 'var(--primary)', color: 'white', padding: '1rem 0', boxShadow: 'var(--shadow-md)' }}>
-        <div className="container flex items-center justify-between">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '1rem' }}>
+      <header style={{
+        background: 'rgba(30, 58, 138, 0.95)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        color: 'white',
+        padding: '0.875rem 1.5rem',
+        borderRadius: 'var(--radius)',
+        boxShadow: 'var(--shadow-lg)',
+        marginBottom: '2rem',
+        maxWidth: '1200px',
+        margin: '1rem auto 2rem auto',
+        width: '100%',
+        border: '1px solid rgba(255, 255, 255, 0.15)'
+      }}>
+        <div className="flex items-center justify-between">
           <div
             className="flex items-center gap-2"
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: 'pointer', transition: 'transform 0.2s', padding: '0.2rem' }}
             onClick={() => setView('home')}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <FileText size={24} />
-            <h1 style={{ fontSize: '1.25rem', color: 'white', margin: 0 }}>Portal CEIA</h1>
+            <div style={{ background: 'white', color: 'var(--primary)', padding: '0.4rem', borderRadius: '8px' }}>
+              <FileText size={20} />
+            </div>
+            <h1 style={{ fontSize: '1.15rem', color: 'white', margin: 0, fontWeight: 700, letterSpacing: '0.5px' }}>Portal CEIA</h1>
           </div>
-          <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
+          <div style={{ fontSize: '0.8rem', opacity: 0.8, background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.75rem', borderRadius: '99px' }}>
             Sistema Administrativo
           </div>
         </div>
@@ -40,42 +57,42 @@ export default function App() {
 
 function HomeScreen({ setView }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexGrow: 1 }}>
-      <div className="text-center mb-8">
-        <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem', color: 'var(--primary)' }}>Bienvenido al Portal</h2>
-        <p className="text-muted">¿Qué trámite deseas realizar hoy?</p>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexGrow: 1, padding: '2rem 0' }}>
+      <div className="text-center mb-8" style={{ animation: 'fadeIn 0.6s ease-out' }}>
+        <h2 style={{ fontSize: '2.5rem', marginBottom: '0.75rem', color: 'var(--primary)', letterSpacing: '-0.02em', fontWeight: 700 }}>Bienvenido al Portal</h2>
+        <p className="text-muted" style={{ fontSize: '1.1rem' }}>¿Qué trámite deseas realizar hoy?</p>
       </div>
 
-      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '800px' }}>
+      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '850px' }}>
         <button
-          className="card hover-scale"
-          style={{ width: '280px', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
+          className="card"
+          style={{ width: '300px', padding: '2.5rem 2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', cursor: 'pointer' }}
           onClick={() => setView('oficio')}
         >
-          <div style={{ background: '#dbeafe', color: '#1e40af', padding: '1.5rem', borderRadius: '50%', marginBottom: '1rem' }}>
-            <FileText size={48} />
+          <div style={{ background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', color: '#1e40af', padding: '1.75rem', borderRadius: '24px', marginBottom: '1.5rem', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.8)' }}>
+            <FileText size={48} strokeWidth={1.5} />
           </div>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Registrar Oficio</h3>
-          <p className="text-muted" style={{ fontSize: '0.875rem' }}>Generar documento y asignar número correlativo automáticamente.</p>
+          <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem', fontWeight: 600 }}>Registrar Oficio</h3>
+          <p className="text-muted" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>Generar documento y asignar número correlativo automáticamente.</p>
         </button>
 
         <button
-          className="card hover-scale"
-          style={{ width: '280px', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}
+          className="card"
+          style={{ width: '300px', padding: '2.5rem 2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', cursor: 'pointer' }}
           onClick={() => setView('permiso')}
         >
-          <div style={{ background: '#dcfce7', color: '#166534', padding: '1.5rem', borderRadius: '50%', marginBottom: '1rem' }}>
-            <Calendar size={48} />
+          <div style={{ background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', color: '#166534', padding: '1.75rem', borderRadius: '24px', marginBottom: '1.5rem', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.8)' }}>
+            <Calendar size={48} strokeWidth={1.5} />
           </div>
-          <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Registrar Permiso</h3>
-          <p className="text-muted" style={{ fontSize: '0.875rem' }}>Solicitar día administrativo o permisos especiales.</p>
+          <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem', fontWeight: 600 }}>Registrar Permiso</h3>
+          <p className="text-muted" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>Solicitar día y medio día administrativo.</p>
         </button>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8" style={{ marginTop: '3rem' }}>
         <button
           className="btn btn-outline"
-          style={{ gap: '0.5rem' }}
+          style={{ gap: '0.5rem', padding: '0.875rem 2rem', borderRadius: '999px', fontWeight: 600, background: 'var(--surface)' }}
           onClick={() => setView('dashboard')}
         >
           <LayoutDashboard size={18} />
