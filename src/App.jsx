@@ -404,6 +404,9 @@ function Dashboard({ setView }) {
   const [permisos, setPermisos] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [editingOficio, setEditingOficio] = useState(null);
+  const [editingPermiso, setEditingPermiso] = useState(null);
+
   useEffect(() => {
     async function fetchData() {
       const o = await loadOficios();
@@ -422,12 +425,11 @@ function Dashboard({ setView }) {
     }
   };
 
-  const handleEditOficio = async (oficio) => {
-    const nuevaMateria = window.prompt("Editar Materia:", oficio.materia);
-    if (nuevaMateria !== null && nuevaMateria.trim() !== '') {
-      await updateOficio(oficio.id, { materia: nuevaMateria });
-      setOficios(oficios.map(o => o.id === oficio.id ? { ...o, materia: nuevaMateria } : o));
-    }
+  const handleEditOficioSubmit = async (e) => {
+    e.preventDefault();
+    await updateOficio(editingOficio.id, editingOficio);
+    setOficios(oficios.map(o => o.id === editingOficio.id ? editingOficio : o));
+    setEditingOficio(null);
   };
 
   const handleDeletePermiso = async (id) => {
@@ -437,12 +439,13 @@ function Dashboard({ setView }) {
     }
   };
 
-  const handleEditPermiso = async (permiso) => {
-    const nuevoMotivo = window.prompt("Editar Motivo u Observación:", permiso.motivo);
-    if (nuevoMotivo !== null && nuevoMotivo.trim() !== '') {
-      await updatePermiso(permiso.id, { motivo: nuevoMotivo });
-      setPermisos(permisos.map(p => p.id === permiso.id ? { ...p, motivo: nuevoMotivo } : p));
-    }
+  const handleEditPermisoSubmit = async (e) => {
+    e.preventDefault();
+    await updatePermiso(editingPermiso.id, editingPermiso);
+    // Recargar permisos para obtener el calculo correcto de diasUsados de la BD
+    const p = await loadPermisos();
+    setPermisos(p);
+    setEditingPermiso(null);
   };
 
   const exportToCSV = () => {
@@ -543,7 +546,7 @@ function Dashboard({ setView }) {
                   <td>{o.destinatario}</td>
                   <td>{o.materia}</td>
                   <td className="text-center">
-                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', marginRight: '0.5rem' }} onClick={() => handleEditOficio(o)} title="Editar Materia">
+                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', marginRight: '0.5rem' }} onClick={() => setEditingOficio(o)} title="Editar Oficio">
                       <Edit2 size={16} />
                     </button>
                     <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', color: '#ef4444', borderColor: '#fee2e2' }} onClick={() => handleDeleteOficio(o.id)} title="Eliminar">
@@ -572,7 +575,7 @@ function Dashboard({ setView }) {
                     {p.jornada && p.jornada.includes('Medio') && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>{p.jornada}</div>}
                   </td>
                   <td className="text-center">
-                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', marginRight: '0.5rem' }} onClick={() => handleEditPermiso(p)} title="Editar Motivo">
+                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', marginRight: '0.5rem' }} onClick={() => setEditingPermiso(p)} title="Editar Permiso">
                       <Edit2 size={16} />
                     </button>
                     <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', color: '#ef4444', borderColor: '#fee2e2' }} onClick={() => handleDeletePermiso(p.id)} title="Eliminar">
@@ -584,6 +587,59 @@ function Dashboard({ setView }) {
               {permisos.length === 0 && <tr><td colSpan="6" className="text-center">No hay permisos.</td></tr>}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* MODAL DE EDICIÓN OFICIO */}
+      {editingOficio && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '500px', animation: 'fadeIn 0.2s ease-out' }}>
+            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Editar Oficio #{editingOficio.id}</h3>
+            <form onSubmit={handleEditOficioSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="input-label">Destinatario</label>
+                <input type="text" className="input-field" required value={editingOficio.destinatario} onChange={(e) => setEditingOficio({ ...editingOficio, destinatario: e.target.value })} />
+              </div>
+              <div>
+                <label className="input-label">Materia o Asunto</label>
+                <input type="text" className="input-field" required value={editingOficio.materia} onChange={(e) => setEditingOficio({ ...editingOficio, materia: e.target.value })} />
+              </div>
+              <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setEditingOficio(null)}>Cancelar</button>
+                <button type="submit" className="btn btn-primary">Guardar Cambios</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE EDICIÓN PERMISO */}
+      {editingPermiso && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
+          <div className="card" style={{ width: '100%', maxWidth: '500px', animation: 'fadeIn 0.2s ease-out' }}>
+            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Editar Permiso #{editingPermiso.id}</h3>
+            <form onSubmit={handleEditPermisoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="input-label">Fecha Inicio</label>
+                <input type="date" className="input-field" required value={editingPermiso.fechaInicio} onChange={(e) => {
+                  const newStart = e.target.value;
+                  setEditingPermiso(prev => ({ ...prev, fechaInicio: newStart, fechaFin: prev.jornada?.includes('Medio Día') ? newStart : prev.fechaFin }));
+                }} />
+              </div>
+              <div>
+                <label className="input-label">Fecha Fin</label>
+                <input type="date" className="input-field" required value={editingPermiso.fechaFin} disabled={editingPermiso.jornada?.includes('Medio Día')} onChange={(e) => setEditingPermiso({ ...editingPermiso, fechaFin: e.target.value })} />
+              </div>
+              <div>
+                <label className="input-label">Motivo</label>
+                <textarea className="input-field" rows="2" required value={editingPermiso.motivo} onChange={(e) => setEditingPermiso({ ...editingPermiso, motivo: e.target.value })} />
+              </div>
+              <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setEditingPermiso(null)}>Cancelar</button>
+                <button type="submit" className="btn btn-primary">Guardar Cambios</button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
