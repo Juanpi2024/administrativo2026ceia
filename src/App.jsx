@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Search, Plus, LogOut, ArrowLeft, Download, Eye, Calendar } from 'lucide-react';
-import { users, getEmployeesByEmail } from './data/users';
+import { FileText, Search, Plus, Users, ArrowLeft, Download, Eye, Calendar, ChevronDown } from 'lucide-react';
+import { users } from './data/users';
 import { initialOficios } from './data/oficios';
 import { initialPermisos } from './data/permisos';
 import './index.css';
 
-export default function App() {
-  const [currentUser, setCurrentUser] = useState(null);
+// Sort users alphabetically for the selector
+const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
-  // Login State
-  const [email, setEmail] = useState('');
-  const [step, setStep] = useState(1); // 1 = enter email, 2 = select actual user
-  const [possibleUsers, setPossibleUsers] = useState([]);
-  const [loginError, setLoginError] = useState('');
+export default function App() {
+  // Try to restore user from localStorage
+  const [currentUser, setCurrentUser] = useState(() => {
+    const savedUserId = localStorage.getItem('currentUserId');
+    if (savedUserId) {
+      return users.find(u => u.id === parseInt(savedUserId)) || null;
+    }
+    return null;
+  });
+
+  const [userSearch, setUserSearch] = useState('');
 
   // App State
-  const [module, setModule] = useState('oficios'); // 'oficios' or 'permisos'
-  const [view, setView] = useState('dashboard'); // 'dashboard', 'new-oficio', 'new-permiso'
+  const [module, setModule] = useState('oficios');
+  const [view, setView] = useState('dashboard');
 
   // Persisted Data State
   const [oficios, setOficios] = useState(() => {
@@ -40,35 +46,30 @@ export default function App() {
     localStorage.setItem('permisos', JSON.stringify(permisos));
   }, [permisos]);
 
-  // --- LOGIN LOGIC ---
-  const handleEmailSubmit = (e) => {
-    e.preventDefault();
-    setLoginError('');
-
-    const matchedUsers = getEmployeesByEmail(email.trim().toLowerCase());
-
-    if (matchedUsers.length === 0) {
-      setLoginError('Correo no encontrado en la base de datos.');
-    } else if (matchedUsers.length === 1) {
-      setCurrentUser(matchedUsers[0]);
-    } else {
-      setPossibleUsers(matchedUsers);
-      setStep(2);
+  // Save selected user to localStorage
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('currentUserId', currentUser.id.toString());
     }
-  };
+  }, [currentUser]);
 
+  // --- USER SELECTION ---
   const handleUserSelect = (user) => {
     setCurrentUser(user);
-    setStep(1);
-    setPossibleUsers([]);
+    setUserSearch('');
   };
 
-  const handleLogout = () => {
+  const handleChangeUser = () => {
     setCurrentUser(null);
-    setEmail('');
+    localStorage.removeItem('currentUserId');
     setView('dashboard');
     setModule('oficios');
   };
+
+  // Filter users for search
+  const filteredUsers = sortedUsers.filter(user =>
+    user.name.toLowerCase().includes(userSearch.toLowerCase())
+  );
 
   // --- APP LOGIC ---
   const canEmitOficio = currentUser?.role === 'emisor' || currentUser?.role === 'administrador';
@@ -102,57 +103,60 @@ export default function App() {
     setView('dashboard');
   };
 
-  // --- SCREENS ---
+  // --- USER SELECTOR SCREEN ---
   if (!currentUser) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: '#f0f4f8' }}>
-        <div className="card animate-fade-in" style={{ maxWidth: '400px', width: '100%' }}>
-          <div className="text-center mb-4">
-            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', backgroundColor: 'var(--primary)', color: 'white', borderRadius: '50%', marginBottom: '1rem' }}>
-              <FileText size={32} />
+      <div className="selector-page">
+        <div className="selector-container animate-fade-in">
+          <div className="selector-header">
+            <div className="selector-icon">
+              <Users size={36} />
             </div>
-            <h2>Portal Administrativo</h2>
-            <p className="text-muted">CEIA Ilustre Municipalidad de Parral</p>
+            <h1 className="selector-title">Portal Administrativo</h1>
+            <p className="selector-subtitle">CEIA — Ilustre Municipalidad de Parral</p>
+            <p className="selector-hint">Seleccione su nombre para ingresar</p>
           </div>
 
-          {step === 1 ? (
-            <form onSubmit={handleEmailSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div>
-                <label className="input-label">Correo Institucional</label>
-                <input
-                  type="email"
-                  className="input-field"
-                  placeholder="ejemplo@eduilustreparral.cl"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-              {loginError && <p style={{ color: '#dc2626', fontSize: '0.875rem' }}>{loginError}</p>}
-              <button type="submit" className="btn btn-primary w-full" style={{ justifyContent: 'center' }}>Ingresar</button>
-            </form>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <p className="font-semibold text-center mb-2">Se encontraron varios funcionarios asociados a este correo. Seleccione su nombre:</p>
-              {possibleUsers.map(user => (
-                <button
-                  key={user.id}
-                  className="btn btn-outline w-full"
-                  style={{ justifyContent: 'flex-start' }}
-                  onClick={() => handleUserSelect(user)}
-                >
-                  {user.name} {user.sub_role ? `(${user.sub_role})` : ''}
-                </button>
-              ))}
+          {/* Search */}
+          <div className="selector-search-wrap">
+            <Search size={18} className="selector-search-icon" />
+            <input
+              type="text"
+              className="selector-search"
+              placeholder="Buscar funcionario..."
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              autoFocus
+            />
+          </div>
+
+          {/* User List */}
+          <div className="selector-list">
+            {filteredUsers.length > 0 ? filteredUsers.map(user => (
               <button
-                className="btn text-muted mt-4"
-                style={{ justifyContent: 'center', fontSize: '0.875rem' }}
-                onClick={() => setStep(1)}
+                key={user.id}
+                className="selector-item"
+                onClick={() => handleUserSelect(user)}
               >
-                Volver
+                <div className="selector-item-avatar">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="selector-item-info">
+                  <span className="selector-item-name">{user.name}</span>
+                  <span className="selector-item-role">
+                    {user.role === 'administrador' ? '🔑 Administrador' :
+                      user.role === 'emisor' ? '✏️ Emisor' : '📄 Lector'}
+                    {user.sub_role ? ` — ${user.sub_role}` : ''}
+                  </span>
+                </div>
+                <ChevronDown size={16} style={{ transform: 'rotate(-90deg)', opacity: 0.4 }} />
               </button>
-            </div>
-          )}
+            )) : (
+              <div className="selector-empty">
+                No se encontraron funcionarios con ese nombre.
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -172,8 +176,9 @@ export default function App() {
               <div className="font-semibold">{currentUser.name}</div>
               <div style={{ opacity: 0.8 }}>Rol: {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}</div>
             </div>
-            <button onClick={handleLogout} style={{ color: 'white', opacity: 0.8 }} title="Cerrar Sesión">
-              <LogOut size={20} />
+            <button onClick={handleChangeUser} className="btn-change-user" title="Cambiar Usuario">
+              <Users size={18} />
+              <span>Cambiar</span>
             </button>
           </div>
         </div>
@@ -323,7 +328,7 @@ export default function App() {
                       <td>{permiso.fechaInicio}</td>
                       <td>
                         <span className={`badge ${permiso.estado === 'Aprobado' ? 'badge-green' :
-                            permiso.estado === 'Rechazado' ? 'badge-gray' : 'badge-gray'
+                          permiso.estado === 'Rechazado' ? 'badge-gray' : 'badge-gray'
                           }`} style={permiso.estado === 'Pendiente' ? { backgroundColor: '#fef08a', color: '#854d0e' } : {}}>
                           {permiso.estado}
                         </span>
