@@ -8,7 +8,30 @@ import './index.css';
 const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
 export default function App() {
-  const [view, setView] = useState('home'); // home, oficio, permiso, dashboard
+  const [view, setViewInternal] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return ['home', 'oficio', 'permiso', 'dashboard'].includes(hash) ? hash : 'home';
+  });
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      setViewInternal(['home', 'oficio', 'permiso', 'dashboard'].includes(hash) ? hash : 'home');
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+
+    // Si no hay hash aseguramos el #home en la historia inicial sin afectar la pila de retroceso
+    if (!window.location.hash) {
+      window.history.replaceState(null, '', '#home');
+    }
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const setView = (newView) => {
+    window.location.hash = newView;
+  };
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '1rem' }}>
