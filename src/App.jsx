@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle } from 'lucide-react';
 import { users } from './data/users';
-import { loadOficios, loadPermisos, saveOficio, savePermiso, getNextCorrelative, checkPermisosDays } from './services/db';
+import { loadOficios, loadPermisos, saveOficio, savePermiso, checkPermisosDays } from './services/db';
 import { sendPermisoEmail } from './services/email';
 import './index.css';
 
@@ -174,7 +174,7 @@ function OficioForm({ setView }) {
 }
 
 function PermisoForm({ setView }) {
-  const [formData, setFormData] = useState({ funcionarioId: '', tipoPermiso: 'Día Administrativo', fechaInicio: '', fechaFin: '', motivo: '' });
+  const [formData, setFormData] = useState({ funcionarioId: '', tipoPermiso: 'Día Administrativo', jornada: 'Completa', fechaInicio: '', fechaFin: '', motivo: '' });
   const [daysInfo, setDaysInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingDays, setLoadingDays] = useState(false);
@@ -200,9 +200,18 @@ function PermisoForm({ setView }) {
     // Validar si es Dia Administrativo y excede 6 dias
     if (formData.tipoPermiso === 'Día Administrativo' && daysInfo) {
       // Calculo burdo para validar (1 día o rango)
-      const start = new Date(formData.fechaInicio);
-      const end = new Date(formData.fechaFin);
-      const requested = Math.abs(Math.ceil((end - start) / (1000 * 60 * 60 * 24))) + 1;
+      let requested = 0;
+      if (formData.jornada.includes('Medio Día')) {
+        requested = 0.5;
+        if (formData.fechaInicio !== formData.fechaFin) {
+          return alert('Si es medio día, la fecha de inicio y de fin deben ser el mismo día.');
+        }
+      } else {
+        const start = new Date(formData.fechaInicio);
+        const end = new Date(formData.fechaFin);
+        requested = Math.abs(Math.ceil((end - start) / (1000 * 60 * 60 * 24))) + 1;
+      }
+
       if (requested > daysInfo.left) {
         return alert(`¡Error! Estás pidiendo ${requested} día(s), pero solo te quedan ${daysInfo.left} disponibles según nuestros registros.`);
       }
@@ -216,6 +225,7 @@ function PermisoForm({ setView }) {
         funcionarioNombre: func.name,
         funcionarioEmail: func.email,
         tipoPermiso: formData.tipoPermiso,
+        jornada: formData.jornada,
         fechaInicio: formData.fechaInicio,
         fechaFin: formData.fechaFin,
         motivo: formData.motivo,
@@ -294,14 +304,46 @@ function PermisoForm({ setView }) {
           </select>
         </div>
 
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+          <div style={{ flex: 1 }}>
+            <label className="input-label">Jornada</label>
+            <select className="input-field" value={formData.jornada} onChange={(e) => {
+              const newJornada = e.target.value;
+              setFormData(prev => ({
+                ...prev,
+                jornada: newJornada,
+                // Force end date to be same as start date if it's a half day
+                fechaFin: newJornada.includes('Medio Día') ? prev.fechaInicio : prev.fechaFin
+              }));
+            }} required>
+              <option value="Completa">Día Completo</option>
+              <option value="Medio Día (Mañana)">Medio Día (Mañana)</option>
+              <option value="Medio Día (Tarde)">Medio Día (Tarde)</option>
+            </select>
+          </div>
+        </div>
+
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div style={{ flex: 1 }}>
             <label className="input-label">Fecha Inicio</label>
-            <input type="date" className="input-field" required value={formData.fechaInicio} onChange={(e) => setFormData({ ...formData, fechaInicio: e.target.value })} />
+            <input type="date" className="input-field" required value={formData.fechaInicio} onChange={(e) => {
+              const newStart = e.target.value;
+              setFormData(prev => ({
+                ...prev,
+                fechaInicio: newStart,
+                // Match end date automatically if half day
+                fechaFin: prev.jornada.includes('Medio Día') ? newStart : prev.fechaFin
+              }));
+            }} />
           </div>
           <div style={{ flex: 1 }}>
             <label className="input-label">Fecha Fin (inclusive)</label>
-            <input type="date" className="input-field" required value={formData.fechaFin} onChange={(e) => setFormData({ ...formData, fechaFin: e.target.value })} />
+            <input type="date" className="input-field" required value={formData.fechaFin} onChange={(e) => setFormData({ ...formData, fechaFin: e.target.value })}
+              // Deshabilitar la fecha fin si es medio dia para evitar inconsistencias
+              disabled={formData.jornada.includes('Medio Día')}
+              // Add a hint title if disabled
+              title={formData.jornada.includes('Medio Día') ? "Medio día solo aplica a una misma fecha" : ""}
+            />
           </div>
         </div>
 
@@ -397,7 +439,10 @@ function Dashboard({ setView }) {
                   <td>{new Date(p.createdAt || new Date()).toLocaleDateString()}</td>
                   <td>{p.funcionarioNombre}</td>
                   <td>{p.fechaInicio} a {p.fechaFin}</td>
-                  <td><span className="badge badge-gray">{p.diasUsados}</span></td>
+                  <td>
+                    <span className="badge badge-gray">{p.diasUsados}</span>
+                    {p.jornada && p.jornada.includes('Medio') && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>{p.jornada}</div>}
+                  </td>
                 </tr>
               ))}
               {permisos.length === 0 && <tr><td colSpan="5" className="text-center">No hay permisos.</td></tr>}

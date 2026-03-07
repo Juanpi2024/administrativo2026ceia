@@ -3,8 +3,13 @@ import { collection, doc, getDocs, query, where, setDoc, runTransaction, orderBy
 
 const isMock = import.meta.env.VITE_FIREBASE_API_KEY === undefined || import.meta.env.VITE_FIREBASE_API_KEY === 'dummy_api_key';
 
-export function calculateDays(startStr, endStr) {
+export function calculateDays(startStr, endStr, jornada = 'Completa') {
     if (!startStr || !endStr) return 0;
+
+    if (jornada.includes('Medio Día')) {
+        return 0.5;
+    }
+
     const d1 = new Date(startStr);
     const d2 = new Date(endStr);
     if (isNaN(d1) || isNaN(d2)) return 0;
@@ -56,19 +61,19 @@ export async function checkPermisosDays(funcionarioId) {
         const existing = JSON.parse(localStorage.getItem('permisos') || '[]');
         const userPermisos = existing.filter(p => p.funcionarioId === funcionarioId);
         let taken = 0;
-        userPermisos.forEach(p => taken += calculateDays(p.fechaInicio, p.fechaFin));
+        userPermisos.forEach(p => taken += calculateDays(p.fechaInicio, p.fechaFin, p.jornada));
         return { taken, left: 6 - taken };
     }
 
     const q = query(collection(db, 'permisos'), where('funcionarioId', '==', funcionarioId));
     const snap = await getDocs(q);
     let taken = 0;
-    snap.forEach(d => taken += calculateDays(d.data().fechaInicio, d.data().fechaFin));
+    snap.forEach(d => taken += calculateDays(d.data().fechaInicio, d.data().fechaFin, d.data().jornada));
     return { taken, left: 6 - taken };
 }
 
 export async function savePermiso(permisoData) {
-    permisoData.diasUsados = calculateDays(permisoData.fechaInicio, permisoData.fechaFin);
+    permisoData.diasUsados = calculateDays(permisoData.fechaInicio, permisoData.fechaFin, permisoData.jornada);
 
     if (isMock) {
         permisoData.id = await getNextCorrelative('permiso');
