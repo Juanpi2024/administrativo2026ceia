@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2 } from 'lucide-react';
+import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2, MessageCircle } from 'lucide-react';
 import { users } from './data/users';
 import { loadOficios, loadPermisos, saveOficio, savePermiso, checkPermisosDays, deleteOficio, deletePermiso, updateOficio, updatePermiso } from './services/db';
 import { sendPermisoEmail } from './services/email';
@@ -445,6 +445,53 @@ function Dashboard({ setView }) {
     }
   };
 
+  const exportToCSV = () => {
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // BOM para Excel
+
+    if (tab === 'oficios') {
+      csvContent += "ID,Fecha,Emisor,Destinatario,Materia\n";
+      oficios.forEach(o => {
+        const row = [o.id, new Date(o.createdAt || o.fechaEmision).toLocaleDateString(), `"${o.emisorNombre}"`, `"${o.destinatario}"`, `"${o.materia}"`].join(",");
+        csvContent += row + "\n";
+      });
+    } else {
+      csvContent += "ID,Fecha Registro,Funcionario,Fecha Inicio,Fecha Fin,Dias Usados,Jornada\n";
+      permisos.forEach(p => {
+        const row = [p.id, new Date(p.createdAt || new Date()).toLocaleDateString(), `"${p.funcionarioNombre}"`, p.fechaInicio, p.fechaFin, p.diasUsados, p.jornada || "Completa"].join(",");
+        csvContent += row + "\n";
+      });
+    }
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `reporte_${tab}_CEIA_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const shareWhatsApp = () => {
+    const today = new Date().toLocaleDateString();
+    let text = `*Reporte Diario CEIA* (${today})\n\n`;
+
+    if (tab === 'oficios') {
+      text += `*Total Oficios Registrados: ${oficios.length}*\n`;
+      const recientes = oficios.slice(0, 5); // Últimos 5
+      recientes.forEach(o => { text += `- [#${o.id}] De: ${o.emisorNombre} Para: ${o.destinatario}\n`; });
+      if (oficios.length > 5) text += `...y ${oficios.length - 5} más.\n`;
+    } else {
+      text += `*Total Permisos: ${permisos.length}*\n`;
+      const recientes = permisos.slice(0, 5);
+      recientes.forEach(p => { text += `- [#${p.id}] ${p.funcionarioNombre} (${p.diasUsados} días)\n`; });
+      if (permisos.length > 5) text += `...y ${permisos.length - 5} más.\n`;
+    }
+
+    text += `\n_Para mayor detalle revise el Portal Administrativo._`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div className="animate-fade-in" style={{ flexGrow: 1 }}>
       <button onClick={() => setView('home')} className="btn" style={{ padding: 0, marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
@@ -462,13 +509,21 @@ function Dashboard({ setView }) {
         </div>
       </div>
 
-      <div style={{ backgroundColor: 'white', borderBottom: '1px solid var(--border)', marginBottom: '1.5rem' }}>
+      <div style={{ backgroundColor: 'white', borderBottom: '1px solid var(--border)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div className="flex gap-4">
           <button onClick={() => setTab('oficios')} className={`btn ${tab === 'oficios' ? 'btn-primary' : 'text-muted'}`} style={tab !== 'oficios' ? { background: 'transparent', color: 'var(--text-color)' } : {}}>
             Oficios
           </button>
           <button onClick={() => setTab('permisos')} className={`btn ${tab === 'permisos' ? 'btn-primary' : 'text-muted'}`} style={tab !== 'permisos' ? { background: 'transparent', color: 'var(--text-color)' } : {}}>
             Permisos
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={exportToCSV} className="btn btn-outline" style={{ fontSize: '0.85rem', padding: '0.4rem 0.75rem' }} title="Descargar como Excel">
+            <Download size={16} /> <span className="hidden sm:inline">Descargar CSV</span>
+          </button>
+          <button onClick={shareWhatsApp} className="btn" style={{ fontSize: '0.85rem', padding: '0.4rem 0.75rem', background: '#25D366', color: 'white' }} title="Enviar Reporte por WhatsApp">
+            <MessageCircle size={16} /> <span className="hidden sm:inline">Enviar Resumen</span>
           </button>
         </div>
       </div>
