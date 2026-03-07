@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, doc, getDocs, query, where, setDoc, runTransaction, orderBy } from 'firebase/firestore';
+import { collection, doc, getDocs, query, where, setDoc, deleteDoc, updateDoc, runTransaction, orderBy } from 'firebase/firestore';
 
 const isMock = import.meta.env.VITE_FIREBASE_API_KEY === undefined || import.meta.env.VITE_FIREBASE_API_KEY === 'dummy_api_key';
 
@@ -101,4 +101,60 @@ export async function loadPermisos() {
     const q = query(collection(db, 'permisos'), orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
     return snap.docs.map(d => d.data());
+}
+
+// ==========================================
+// NUEVAS FUNCIONES PARA EDITAR Y ELIMINAR
+// ==========================================
+
+export async function deleteOficio(id) {
+    if (isMock) {
+        const existing = JSON.parse(localStorage.getItem('oficios') || '[]');
+        localStorage.setItem('oficios', JSON.stringify(existing.filter(o => o.id !== id)));
+        return true;
+    }
+    await deleteDoc(doc(db, 'oficios', id));
+    return true;
+}
+
+export async function deletePermiso(id) {
+    if (isMock) {
+        const existing = JSON.parse(localStorage.getItem('permisos') || '[]');
+        localStorage.setItem('permisos', JSON.stringify(existing.filter(p => p.id !== id)));
+        return true;
+    }
+    await deleteDoc(doc(db, 'permisos', id));
+    return true;
+}
+
+export async function updateOficio(id, newData) {
+    if (isMock) {
+        const existing = JSON.parse(localStorage.getItem('oficios') || '[]');
+        const index = existing.findIndex(o => o.id === id);
+        if (index !== -1) {
+            existing[index] = { ...existing[index], ...newData };
+            localStorage.setItem('oficios', JSON.stringify(existing));
+        }
+        return true;
+    }
+    await updateDoc(doc(db, 'oficios', id), newData);
+    return true;
+}
+
+export async function updatePermiso(id, newData) {
+    if (newData.fechaInicio && newData.fechaFin) {
+        newData.diasUsados = calculateDays(newData.fechaInicio, newData.fechaFin, newData.jornada || 'Completa');
+    }
+
+    if (isMock) {
+        const existing = JSON.parse(localStorage.getItem('permisos') || '[]');
+        const index = existing.findIndex(p => p.id === id);
+        if (index !== -1) {
+            existing[index] = { ...existing[index], ...newData };
+            localStorage.setItem('permisos', JSON.stringify(existing));
+        }
+        return true;
+    }
+    await updateDoc(doc(db, 'permisos', id), newData);
+    return true;
 }

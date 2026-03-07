@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle } from 'lucide-react';
+import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2 } from 'lucide-react';
 import { users } from './data/users';
-import { loadOficios, loadPermisos, saveOficio, savePermiso, checkPermisosDays } from './services/db';
+import { loadOficios, loadPermisos, saveOficio, savePermiso, checkPermisosDays, deleteOficio, deletePermiso, updateOficio, updatePermiso } from './services/db';
 import { sendPermisoEmail } from './services/email';
 import './index.css';
 
@@ -415,6 +415,36 @@ function Dashboard({ setView }) {
     fetchData();
   }, []);
 
+  const handleDeleteOficio = async (id) => {
+    if (window.confirm(`¿Estás seguro que deseas eliminar el Oficio ${id}? Esta acción es irreversible.`)) {
+      await deleteOficio(id);
+      setOficios(oficios.filter(o => o.id !== id));
+    }
+  };
+
+  const handleEditOficio = async (oficio) => {
+    const nuevaMateria = window.prompt("Editar Materia:", oficio.materia);
+    if (nuevaMateria !== null && nuevaMateria.trim() !== '') {
+      await updateOficio(oficio.id, { materia: nuevaMateria });
+      setOficios(oficios.map(o => o.id === oficio.id ? { ...o, materia: nuevaMateria } : o));
+    }
+  };
+
+  const handleDeletePermiso = async (id) => {
+    if (window.confirm(`¿Estás seguro que deseas eliminar el Permiso Administrativo ${id}? Se devolverán los días al funcionario.`)) {
+      await deletePermiso(id);
+      setPermisos(permisos.filter(p => p.id !== id));
+    }
+  };
+
+  const handleEditPermiso = async (permiso) => {
+    const nuevoMotivo = window.prompt("Editar Motivo u Observación:", permiso.motivo);
+    if (nuevoMotivo !== null && nuevoMotivo.trim() !== '') {
+      await updatePermiso(permiso.id, { motivo: nuevoMotivo });
+      setPermisos(permisos.map(p => p.id === permiso.id ? { ...p, motivo: nuevoMotivo } : p));
+    }
+  };
+
   return (
     <div className="animate-fade-in" style={{ flexGrow: 1 }}>
       <button onClick={() => setView('home')} className="btn" style={{ padding: 0, marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
@@ -448,7 +478,7 @@ function Dashboard({ setView }) {
       ) : tab === 'oficios' ? (
         <div className="card table-container">
           <table>
-            <thead><tr><th>Nº Oficio</th><th>Fecha</th><th>Emisor</th><th>Destinatario</th><th>Materia</th></tr></thead>
+            <thead><tr><th>Nº Oficio</th><th>Fecha</th><th>Emisor</th><th>Destinatario</th><th>Materia</th><th className="text-center">Acciones</th></tr></thead>
             <tbody>
               {oficios.map(o => (
                 <tr key={o.id}>
@@ -457,16 +487,24 @@ function Dashboard({ setView }) {
                   <td>{o.emisorNombre}</td>
                   <td>{o.destinatario}</td>
                   <td>{o.materia}</td>
+                  <td className="text-center">
+                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', marginRight: '0.5rem' }} onClick={() => handleEditOficio(o)} title="Editar Materia">
+                      <Edit2 size={16} />
+                    </button>
+                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', color: '#ef4444', borderColor: '#fee2e2' }} onClick={() => handleDeleteOficio(o.id)} title="Eliminar">
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
                 </tr>
               ))}
-              {oficios.length === 0 && <tr><td colSpan="5" className="text-center">No hay oficios.</td></tr>}
+              {oficios.length === 0 && <tr><td colSpan="6" className="text-center">No hay oficios.</td></tr>}
             </tbody>
           </table>
         </div>
       ) : (
         <div className="card table-container">
           <table>
-            <thead><tr><th>Nº Permiso</th><th>Fecha Registro</th><th>Funcionario</th><th>Fechas</th><th>Días</th></tr></thead>
+            <thead><tr><th>Nº Permiso</th><th>Fecha Registro</th><th>Funcionario</th><th>Fechas</th><th>Días</th><th className="text-center">Acciones</th></tr></thead>
             <tbody>
               {permisos.map(p => (
                 <tr key={p.id}>
@@ -478,9 +516,17 @@ function Dashboard({ setView }) {
                     <span className="badge badge-gray">{p.diasUsados}</span>
                     {p.jornada && p.jornada.includes('Medio') && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>{p.jornada}</div>}
                   </td>
+                  <td className="text-center">
+                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', marginRight: '0.5rem' }} onClick={() => handleEditPermiso(p)} title="Editar Motivo">
+                      <Edit2 size={16} />
+                    </button>
+                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', color: '#ef4444', borderColor: '#fee2e2' }} onClick={() => handleDeletePermiso(p.id)} title="Eliminar">
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
                 </tr>
               ))}
-              {permisos.length === 0 && <tr><td colSpan="5" className="text-center">No hay permisos.</td></tr>}
+              {permisos.length === 0 && <tr><td colSpan="6" className="text-center">No hay permisos.</td></tr>}
             </tbody>
           </table>
         </div>
