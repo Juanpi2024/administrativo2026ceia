@@ -90,17 +90,45 @@ export async function savePermiso(permisoData) {
 }
 
 export async function loadOficios() {
-    if (isMock) return JSON.parse(localStorage.getItem('oficios') || '[]');
-    const q = query(collection(db, 'oficios'), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => d.data());
+    const local = JSON.parse(localStorage.getItem('oficios') || '[]');
+    if (isMock) return local;
+
+    try {
+        const q = query(collection(db, 'oficios'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        const cloud = snap.docs.map(d => d.data());
+
+        // Unimos ambos para asegurar que lo que guardaste local aparezca
+        // Filtrando duplicados por ID
+        const combined = [...cloud];
+        local.forEach(lo => {
+            if (!combined.some(co => co.id === lo.id)) combined.push(lo);
+        });
+        return combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } catch (e) {
+        console.warn("Firestore inaccesible, cargando datos locales:", e);
+        return local;
+    }
 }
 
 export async function loadPermisos() {
-    if (isMock) return JSON.parse(localStorage.getItem('permisos') || '[]');
-    const q = query(collection(db, 'permisos'), orderBy('createdAt', 'desc'));
-    const snap = await getDocs(q);
-    return snap.docs.map(d => d.data());
+    const local = JSON.parse(localStorage.getItem('permisos') || '[]');
+    if (isMock) return local;
+
+    try {
+        const q = query(collection(db, 'permisos'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        const cloud = snap.docs.map(d => d.data());
+
+        const combined = [...cloud];
+        local.forEach(lp => {
+            if (!combined.some(cp => cp.id === lp.id)) combined.push(lp);
+        });
+        return combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } catch (e) {
+        console.warn("Firestore inaccesible, cargando datos locales:", e);
+        return local;
+    }
 }
 
 // ==========================================
@@ -108,22 +136,39 @@ export async function loadPermisos() {
 // ==========================================
 
 export async function deleteOficio(id) {
-    if (isMock) {
-        const existing = JSON.parse(localStorage.getItem('oficios') || '[]');
+    // 1. Limpieza Local Prioritaria (para eliminar datos de prueba "huerfanos")
+    const existing = JSON.parse(localStorage.getItem('oficios') || '[]');
+    if (existing.some(o => o.id === id)) {
         localStorage.setItem('oficios', JSON.stringify(existing.filter(o => o.id !== id)));
-        return true;
     }
-    await deleteDoc(doc(db, 'oficios', id));
+
+    // 2. Limpieza en la Nube (si aplica)
+    if (!isMock) {
+        try {
+            await deleteDoc(doc(db, 'oficios', id));
+        } catch (error) {
+            console.error("Error al borrar oficio en Firestore:", error);
+            // No bloqueamos el flujo si falla la nube, ya que el local ya se limpió
+        }
+    }
     return true;
 }
 
 export async function deletePermiso(id) {
-    if (isMock) {
-        const existing = JSON.parse(localStorage.getItem('permisos') || '[]');
+    // 1. Limpieza Local Prioritaria
+    const existing = JSON.parse(localStorage.getItem('permisos') || '[]');
+    if (existing.some(p => p.id === id)) {
         localStorage.setItem('permisos', JSON.stringify(existing.filter(p => p.id !== id)));
-        return true;
     }
-    await deleteDoc(doc(db, 'permisos', id));
+
+    // 2. Limpieza en la Nube
+    if (!isMock) {
+        try {
+            await deleteDoc(doc(db, 'permisos', id));
+        } catch (error) {
+            console.error("Error al borrar permiso en Firestore:", error);
+        }
+    }
     return true;
 }
 
