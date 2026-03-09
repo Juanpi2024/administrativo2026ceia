@@ -701,7 +701,18 @@ function Dashboard({ setView }) {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
           <div className="card" style={{ width: '100%', maxWidth: '500px', animation: 'fadeIn 0.2s ease-out' }}>
             <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Editar Oficio #{editingOficio.id}</h3>
-            <form onSubmit={handleEditOficioSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <form onSubmit={handleEditOficioSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '70vh', overflowY: 'auto', paddingRight: '0.5rem' }}>
+              <div>
+                <label className="input-label">Emisor</label>
+                <select className="input-field" required value={editingOficio.emisorId || ''} onChange={(e) => {
+                  const selectedId = parseInt(e.target.value);
+                  const emisor = sortedUsers.find(u => u.id === selectedId);
+                  setEditingOficio({ ...editingOficio, emisorId: selectedId, emisorNombre: emisor ? emisor.name : '' });
+                }}>
+                  <option value="">-- Seleccionar Nuevo Emisor --</option>
+                  {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                </select>
+              </div>
               <div>
                 <label className="input-label">Destinatario</label>
                 <input type="text" className="input-field" required value={editingOficio.destinatario} onChange={(e) => setEditingOficio({ ...editingOficio, destinatario: e.target.value })} />
@@ -710,7 +721,11 @@ function Dashboard({ setView }) {
                 <label className="input-label">Materia o Asunto</label>
                 <input type="text" className="input-field" required value={editingOficio.materia} onChange={(e) => setEditingOficio({ ...editingOficio, materia: e.target.value })} />
               </div>
-              <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end' }}>
+              <div>
+                <label className="input-label">Descripción</label>
+                <textarea className="input-field" rows="3" required value={editingOficio.descripcion} onChange={(e) => setEditingOficio({ ...editingOficio, descripcion: e.target.value })} />
+              </div>
+              <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end', position: 'sticky', bottom: '-1rem', background: 'white', paddingTop: '1rem', paddingBottom: '0.5rem' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setEditingOficio(null)}>Cancelar</button>
                 <button type="submit" className="btn btn-primary">Guardar Cambios</button>
               </div>
@@ -724,7 +739,45 @@ function Dashboard({ setView }) {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
           <div className="card" style={{ width: '100%', maxWidth: '500px', animation: 'fadeIn 0.2s ease-out' }}>
             <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Editar Permiso #{editingPermiso.id}</h3>
-            <form onSubmit={handleEditPermisoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <form onSubmit={handleEditPermisoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '70vh', overflowY: 'auto', paddingRight: '0.5rem' }}>
+              <div>
+                <label className="input-label">Funcionario</label>
+                <select className="input-field" required value={editingPermiso.funcionarioId || ''} onChange={(e) => {
+                  const selectedId = parseInt(e.target.value);
+                  const func = sortedUsers.find(u => u.id === selectedId);
+                  setEditingPermiso({ ...editingPermiso, funcionarioId: selectedId, funcionarioNombre: func ? func.name : '', funcionarioEmail: func ? func.email : '' });
+                }}>
+                  <option value="">-- Seleccionar Funcionario --</option>
+                  {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="input-label">Tipo de Permiso</label>
+                <select className="input-field" value={editingPermiso.tipoPermiso} onChange={(e) => setEditingPermiso({ ...editingPermiso, tipoPermiso: e.target.value })} required>
+                  <option value="Día Administrativo">Día Administrativo (Carga a los 6 días)</option>
+                  <option value="Día de Cumpleaños">Día de Cumpleaños</option>
+                  <option value="Permiso por Matrimonio / Unión Civil">Permiso por Matrimonio / Unión Civil</option>
+                  <option value="Permiso por Fallecimiento">Permiso por Fallecimiento (Familiar Directo)</option>
+                  <option value="Justificación Médica">Justificación Médica</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                <div style={{ flex: 1 }}>
+                  <label className="input-label">Jornada</label>
+                  <select className="input-field" value={editingPermiso.jornada || 'Completa'} onChange={(e) => {
+                    const newJornada = e.target.value;
+                    setEditingPermiso(prev => ({
+                      ...prev,
+                      jornada: newJornada,
+                      fechaFin: newJornada.includes('Medio Día') ? prev.fechaInicio : prev.fechaFin
+                    }));
+                  }} required>
+                    <option value="Completa">Día Completo</option>
+                    <option value="Medio Día (Mañana)">Medio Día (Mañana)</option>
+                    <option value="Medio Día (Tarde)">Medio Día (Tarde)</option>
+                  </select>
+                </div>
+              </div>
               <div>
                 <label className="input-label">Fecha Inicio</label>
                 <input type="date" className="input-field" required value={editingPermiso.fechaInicio} onChange={(e) => {
@@ -740,7 +793,7 @@ function Dashboard({ setView }) {
                 <label className="input-label">Motivo</label>
                 <textarea className="input-field" rows="2" required value={editingPermiso.motivo} onChange={(e) => setEditingPermiso({ ...editingPermiso, motivo: e.target.value })} />
               </div>
-              <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end' }}>
+              <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end', position: 'sticky', bottom: '-1rem', background: 'white', paddingTop: '1rem', paddingBottom: '0.5rem' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setEditingPermiso(null)}>Cancelar</button>
                 <button type="submit" className="btn btn-primary">Guardar Cambios</button>
               </div>
