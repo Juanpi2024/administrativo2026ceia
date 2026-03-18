@@ -9,6 +9,9 @@ import { sendPermisoEmail } from './services/email';
 import './index.css';
 
 const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+// IDs autorizados para emitir oficios
+const authorizedOficioIds = [36, 7, 16, 23, 17, 19, 10];
+const oficioEmitters = sortedUsers.filter(u => authorizedOficioIds.includes(u.id));
 
 export default function App() {
   const [view, setViewInternal] = useState(() => {
@@ -242,7 +245,7 @@ function OficioForm({ setView }) {
           <label className="input-label">¿Quién emite el oficio?</label>
           <select className="input-field" required value={formData.emisorId} onChange={e => setFormData({ ...formData, emisorId: e.target.value })}>
             <option value="">-- Seleccionar Nombre --</option>
-            {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+            {oficioEmitters.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
         </div>
         <div>
@@ -402,11 +405,13 @@ function PermisoForm({ setView }) {
         <div>
           <label className="input-label">Tipo de Permiso</label>
           <select className="input-field" value={formData.tipoPermiso} onChange={(e) => setFormData({ ...formData, tipoPermiso: e.target.value })} required>
-            <option value="Día Administrativo">Día Administrativo (Carga a los 6 días)</option>
-            <option value="Día de Cumpleaños">Día de Cumpleaños</option>
-            <option value="Permiso por Matrimonio / Unión Civil">Permiso por Matrimonio / Unión Civil</option>
-            <option value="Permiso por Fallecimiento">Permiso por Fallecimiento (Familiar Directo)</option>
-            <option value="Justificación Médica">Justificación Médica</option>
+            <option value="Día Administrativo">📋 Día Administrativo (Carga a los 6 días)</option>
+            <option value="Día de Cumpleaños">🎂 Día de Cumpleaños</option>
+            <option value="Permiso por Matrimonio / Unión Civil">💍 Permiso por Matrimonio / Unión Civil</option>
+            <option value="Permiso por Fallecimiento">🖤 Permiso por Fallecimiento (Familiar Directo)</option>
+            <option value="Permiso sin goce de sueldo">💸 Permiso sin goce de sueldo (NUEVO)</option>
+            <option value="Permiso por Especialidad">🎓 Permiso por Especialidad</option>
+            <option value="Justificación Médica">🏥 Justificación Médica</option>
           </select>
         </div>
 
@@ -798,6 +803,7 @@ function Dashboard({ setView }) {
                   <option value="Día de Cumpleaños">Día de Cumpleaños</option>
                   <option value="Permiso por Matrimonio / Unión Civil">Permiso por Matrimonio / Unión Civil</option>
                   <option value="Permiso por Fallecimiento">Permiso por Fallecimiento (Familiar Directo)</option>
+                  <option value="Permiso sin goce de sueldo">Permiso sin goce de sueldo</option>
                   <option value="Justificación Médica">Justificación Médica</option>
                 </select>
               </div>

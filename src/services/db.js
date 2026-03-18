@@ -59,13 +59,18 @@ export async function saveOficio(oficioData) {
 export async function checkPermisosDays(funcionarioId) {
     if (isMock) {
         const existing = JSON.parse(localStorage.getItem('permisos') || '[]');
-        const userPermisos = existing.filter(p => p.funcionarioId === funcionarioId);
+        // Solo sumamos los que son de tipo "Día Administrativo"
+        const adminPermisos = existing.filter(p => p.funcionarioId === funcionarioId && p.tipoPermiso === 'Día Administrativo');
         let taken = 0;
-        userPermisos.forEach(p => taken += calculateDays(p.fechaInicio, p.fechaFin, p.jornada));
+        adminPermisos.forEach(p => taken += calculateDays(p.fechaInicio, p.fechaFin, p.jornada));
         return { taken, left: 6 - taken };
     }
 
-    const q = query(collection(db, 'permisos'), where('funcionarioId', '==', funcionarioId));
+    const q = query(
+        collection(db, 'permisos'), 
+        where('funcionarioId', '==', funcionarioId),
+        where('tipoPermiso', '==', 'Día Administrativo')
+    );
     const snap = await getDocs(q);
     let taken = 0;
     snap.forEach(d => taken += calculateDays(d.data().fechaInicio, d.data().fechaFin, d.data().jornada));
