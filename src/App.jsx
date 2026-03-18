@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2, MessageCircle, BarChart2, PieChart as PieChartIcon } from 'lucide-react';
+import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2, MessageCircle, BarChart2, PieChart as PieChartIcon, Cake } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { users } from './data/users';
+import { alumnosBirthdays, funcionariosBirthdays } from './data/birthdays';
+import BirthdayModal from './components/BirthdayModal';
 import { loadOficios, loadPermisos, saveOficio, savePermiso, checkPermisosDays, deleteOficio, deletePermiso, updateOficio, updatePermiso } from './services/db';
 import { sendPermisoEmail } from './services/email';
 import './index.css';
@@ -13,6 +15,21 @@ export default function App() {
     const hash = window.location.hash.replace('#', '');
     return ['home', 'oficio', 'permiso', 'dashboard'].includes(hash) ? hash : 'home';
   });
+
+  const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
+
+  // Verificar si hay cumpleaños hoy para la notificación
+  const hasBirthdaysToday = React.useMemo(() => {
+    const today = new Date();
+    const m = today.getMonth() + 1;
+    const d = today.getDate();
+    const check = (list) => list.some(p => {
+      if (!p.fechaNac) return false;
+      const parts = p.fechaNac.split('-');
+      return parseInt(parts[1]) === m && parseInt(parts[2]) === d;
+    });
+    return check(alumnosBirthdays) || check(funcionariosBirthdays);
+  }, []);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -65,6 +82,27 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Botón de Cumpleaños */}
+            <button 
+              onClick={() => setIsBirthdayModalOpen(true)}
+              className="flex items-center gap-2"
+              style={{ 
+                background: hasBirthdaysToday ? 'linear-gradient(135deg, #fb923c, #f97316)' : 'rgba(255,255,255,0.1)', 
+                padding: '0.5rem 1rem', 
+                borderRadius: '99px',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: 'white',
+                transition: 'var(--transition)',
+                boxShadow: hasBirthdaysToday ? '0 0 15px rgba(251, 146, 60, 0.4)' : 'none'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <Cake size={18} className={hasBirthdaysToday ? 'animate-bounce' : ''} />
+              <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Cumpleaños</span>
+              {hasBirthdaysToday && <span style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%', display: 'inline-block' }}></span>}
+            </button>
+
             <div style={{ background: 'white', borderRadius: '8px', padding: '0.25rem 0.5rem', display: 'flex', alignItems: 'center' }}>
               <img src="./logos.png" alt="Logos CEIA" style={{ height: '40px', objectFit: 'contain' }} onError={(e) => e.currentTarget.style.display = 'none'} />
             </div>
@@ -75,6 +113,8 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      <BirthdayModal isOpen={isBirthdayModalOpen} onClose={() => setIsBirthdayModalOpen(false)} />
 
       <main className="container p-6 animate-fade-in" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         {view === 'home' && <HomeScreen setView={setView} />}
