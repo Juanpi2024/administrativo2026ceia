@@ -483,6 +483,7 @@ function Dashboard({ setView }) {
   const [editingOficio, setEditingOficio] = useState(null);
   const [editingPermiso, setEditingPermiso] = useState(null);
   const [historyFuncionario, setHistoryFuncionario] = useState(null);
+  const [permisoViewMode, setPermisoViewMode] = useState('table'); // 'table' or 'calendar'
 
   useEffect(() => {
     async function fetchData() {
@@ -664,6 +665,38 @@ function Dashboard({ setView }) {
             Permisos
           </button>
         </div>
+        
+        {tab === 'permisos' && (
+          <div className="flex bg-gray-100 p-1 rounded-lg gap-1" style={{ background: '#f1f5f9', padding: '0.25rem', borderRadius: '0.5rem' }}>
+            <button 
+              onClick={() => setPermisoViewMode('table')} 
+              className="btn" 
+              style={{ 
+                padding: '0.25rem 0.75rem', 
+                fontSize: '0.75rem', 
+                background: permisoViewMode === 'table' ? 'white' : 'transparent',
+                boxShadow: permisoViewMode === 'table' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                color: permisoViewMode === 'table' ? 'var(--primary)' : 'var(--text-muted)'
+              }}
+            >
+              Lista
+            </button>
+            <button 
+              onClick={() => setPermisoViewMode('calendar')} 
+              className="btn" 
+              style={{ 
+                padding: '0.25rem 0.75rem', 
+                fontSize: '0.75rem', 
+                background: permisoViewMode === 'calendar' ? 'white' : 'transparent',
+                boxShadow: permisoViewMode === 'calendar' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                color: permisoViewMode === 'calendar' ? 'var(--primary)' : 'var(--text-muted)'
+              }}
+            >
+              Calendario
+            </button>
+          </div>
+        )}
+
         <div className="flex gap-2">
           <button onClick={exportToCSV} className="btn btn-outline" style={{ fontSize: '0.85rem', padding: '0.4rem 0.75rem' }} title="Descargar como Excel">
             <Download size={16} /> <span className="hidden sm:inline">Descargar CSV</span>
@@ -702,6 +735,8 @@ function Dashboard({ setView }) {
             </tbody>
           </table>
         </div>
+      ) : permisoViewMode === 'calendar' ? (
+        <PermissionCalendar permisos={permisos} />
       ) : (
         <div className="card table-container">
           <table>
@@ -893,6 +928,130 @@ function Dashboard({ setView }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function PermissionCalendar({ permisos }) {
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+  const firstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
+
+  const monthNames = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+  // Pre-process permissions to counts per day
+  const counts = React.useMemo(() => {
+    const map = {};
+    permisos.forEach(p => {
+      const start = new Date(p.fechaInicio);
+      const end = new Date(p.fechaFin);
+      if (isNaN(start) || isNaN(end)) return;
+
+      const curr = new Date(start);
+      while (curr <= end) {
+        const dateStr = curr.toISOString().split('T')[0];
+        if (!map[dateStr]) map[dateStr] = { count: 0, names: [] };
+        map[dateStr].count += 1;
+        map[dateStr].names.push(p.funcionarioNombre);
+        curr.setDate(curr.getDate() + 1);
+      }
+    });
+    return map;
+  }, [permisos]);
+
+  const daysArr = [];
+  const totalDays = daysInMonth(year, month);
+  const startDay = (firstDayOfMonth(year, month) + 6) % 7; // Adjust for Monday start
+
+  // Padding
+  for (let i = 0; i < startDay; i++) {
+    daysArr.push(null);
+  }
+  for (let d = 1; d <= totalDays; d++) {
+    daysArr.push(d);
+  }
+
+  return (
+    <div className="card animate-fade-in" style={{ padding: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h3 style={{ fontSize: '1.25rem', color: 'var(--primary)', margin: 0 }}>
+          Calendario de Permisos - {monthNames[month]} {year}
+        </h3>
+        <div className="flex gap-2">
+          <button onClick={handlePrevMonth} className="btn btn-outline" style={{ padding: '0.4rem' }}>&lt;</button>
+          <button onClick={() => setCurrentDate(new Date())} className="btn btn-outline" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>Hoy</button>
+          <button onClick={handleNextMonth} className="btn btn-outline" style={{ padding: '0.4rem' }}>&gt;</button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+        {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
+          <div key={d} style={{ fontWeight: 'bold', color: 'var(--text-muted)', fontSize: '0.8rem', paddingBottom: '0.5rem' }}>{d}</div>
+        ))}
+
+        {daysArr.map((day, i) => {
+          if (day === null) return <div key={`empty-${i}`} style={{ height: '80px', background: '#f8fafc', borderRadius: '4px' }}></div>;
+          
+          const date = new Date(year, month, day);
+          const dateStr = date.toISOString().split('T')[0];
+          const info = counts[dateStr];
+          const isToday = new Date().toISOString().split('T')[0] === dateStr;
+
+          return (
+            <div 
+              key={day} 
+              style={{ 
+                height: '80px', 
+                background: 'white', 
+                border: isToday ? '2px solid var(--primary)' : '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '0.4rem',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                transition: 'all 0.2s'
+              }}
+            >
+              <div style={{ fontWeight: isToday ? 'bold' : 'normal', fontSize: '0.9rem', color: isToday ? 'var(--primary)' : 'inherit' }}>{day}</div>
+              {info && info.count > 0 && (
+                <div 
+                  title={info.names.join(', ')}
+                  style={{ 
+                    background: info.count >= 3 ? '#fee2e2' : '#ffedd5',
+                    color: info.count >= 3 ? '#991b1b' : '#9a3412',
+                    fontSize: '0.7rem',
+                    padding: '0.2rem 0.4rem',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    textAlign: 'center'
+                  }}
+                >
+                  {info.count} Func.
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      
+      <div style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem' }}>
+        <div className="flex items-center gap-2">
+          <span style={{ width: '12px', height: '12px', background: '#ffedd5', borderRadius: '2px', display: 'inline-block' }}></span> 1-2 Permisos
+        </div>
+        <div className="flex items-center gap-2">
+          <span style={{ width: '12px', height: '12px', background: '#fee2e2', borderRadius: '2px', display: 'inline-block' }}></span> 3+ Permisos
+        </div>
+      </div>
     </div>
   );
 }
