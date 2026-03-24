@@ -131,46 +131,86 @@ export default function App() {
 
 function HomeScreen({ setView }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexGrow: 1, padding: '2rem 0' }}>
-      <div className="text-center mb-8" style={{ animation: 'fadeIn 0.6s ease-out' }}>
-        <h2 style={{ fontSize: '2.5rem', marginBottom: '0.75rem', color: 'var(--primary)', letterSpacing: '-0.02em', fontWeight: 700 }}>Bienvenido al Portal</h2>
-        <p className="text-muted" style={{ fontSize: '1.1rem' }}>¿Qué trámite deseas realizar hoy?</p>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexGrow: 1, padding: '4rem 0' }}>
+      <div className="text-center mb-12 animate-fade-in">
+        <h2 style={{ fontSize: '3.5rem', marginBottom: '1rem', background: 'linear-gradient(135deg, var(--primary), #1e3a8a)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.04em', fontWeight: 800 }}>Bienvenido al Portal</h2>
+        <p className="text-muted" style={{ fontSize: '1.25rem', fontWeight: 500 }}>¿Qué trámite deseas realizar hoy?</p>
       </div>
 
-      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', justifyContent: 'center', maxWidth: '850px' }}>
+      <div className="flex gap-8 flex-wrap justify-center w-full" style={{ maxWidth: '1000px' }}>
         <button
-          className="card"
-          style={{ width: '300px', padding: '2.5rem 2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', cursor: 'pointer' }}
+          className="card animate-fade-in"
+          style={{ 
+            flex: '1 1 340px', 
+            padding: '3.5rem 2.5rem', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            textAlign: 'center', 
+            cursor: 'pointer',
+            transition: 'var(--transition-slow)'
+          }}
           onClick={() => setView('oficio')}
         >
-          <div style={{ background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', color: '#1e40af', padding: '1.75rem', borderRadius: '24px', marginBottom: '1.5rem', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.8)' }}>
-            <FileText size={48} strokeWidth={1.5} />
+          <div style={{ 
+            background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', 
+            color: '#1e40af', 
+            padding: '2rem', 
+            borderRadius: '28px', 
+            marginBottom: '2rem', 
+            boxShadow: '0 8px 20px rgba(30, 64, 175, 0.15), inset 0 2px 4px rgba(255,255,255,0.8)' 
+          }}>
+            <FileText size={56} strokeWidth={1.5} />
           </div>
-          <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem', fontWeight: 600 }}>Registro de oficios 2026</h3>
-          <p className="text-muted" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>Generar documento y asignar número correlativo automáticamente.</p>
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', fontWeight: 700 }}>Registro de Oficios</h3>
+          <p className="text-muted" style={{ fontSize: '1rem', lineHeight: 1.6 }}>Generar documentos oficiales y asignar números correlativos en tiempo real.</p>
         </button>
 
         <button
-          className="card"
-          style={{ width: '300px', padding: '2.5rem 2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', cursor: 'pointer' }}
+          className="card animate-fade-in"
+          style={{ 
+            flex: '1 1 340px', 
+            padding: '3.5rem 2.5rem', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            textAlign: 'center', 
+            cursor: 'pointer',
+            transition: 'var(--transition-slow)'
+          }}
           onClick={() => setView('permiso')}
         >
-          <div style={{ background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', color: '#166534', padding: '1.75rem', borderRadius: '24px', marginBottom: '1.5rem', boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.8)' }}>
-            <Calendar size={48} strokeWidth={1.5} />
+          <div style={{ 
+            background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', 
+            color: '#166534', 
+            padding: '2rem', 
+            borderRadius: '28px', 
+            marginBottom: '2rem', 
+            boxShadow: '0 8px 20px rgba(22, 101, 52, 0.15), inset 0 2px 4px rgba(255,255,255,0.8)' 
+          }}>
+            <Calendar size={56} strokeWidth={1.5} />
           </div>
-          <h3 style={{ fontSize: '1.35rem', marginBottom: '0.75rem', fontWeight: 600 }}>Registro de permisos administrativos 2026</h3>
-          <p className="text-muted" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>Solicitar día y medio día administrativo.</p>
+          <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', fontWeight: 700 }}>Permisos Administrativos</h3>
+          <p className="text-muted" style={{ fontSize: '1rem', lineHeight: 1.6 }}>Gestión de días y medios días para funcionarios con control de cupos.</p>
         </button>
       </div>
 
-      <div className="mt-8" style={{ marginTop: '3rem' }}>
+      <div className="mt-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
         <button
           className="btn btn-outline"
-          style={{ gap: '0.5rem', padding: '0.875rem 2rem', borderRadius: '999px', fontWeight: 600, background: 'var(--surface)' }}
+          style={{ 
+            gap: '0.75rem', 
+            padding: '1rem 2.5rem', 
+            borderRadius: '99px', 
+            fontWeight: 700, 
+            fontSize: '1rem',
+            background: 'rgba(255,255,255,0.8)',
+            border: '2px solid var(--border)'
+          }}
           onClick={() => setView('dashboard')}
         >
-          <LayoutDashboard size={18} />
-          Ir al Panel de Control Completo
+          <LayoutDashboard size={20} />
+          Panel de Control Administrativo
         </button>
       </div>
     </div>
@@ -217,57 +257,96 @@ function OficioForm({ setView }) {
 
   if (successId) {
     return (
-      <div className="card text-center animate-fade-in" style={{ maxWidth: '500px', margin: '3rem auto', padding: '3rem' }}>
-        <div style={{ background: '#dcfce7', color: '#166534', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-          <Save size={40} />
+      <div className="card text-center animate-fade-in" style={{ maxWidth: '480px', margin: '4rem auto', padding: '4rem 3rem', boxShadow: 'var(--shadow-xl)', border: '1px solid rgba(255,255,255,0.8)' }}>
+        <div style={{ 
+          background: 'linear-gradient(135deg, #dcfce7, #bbf7d0)', 
+          color: '#166534', 
+          width: '96px', 
+          height: '96px', 
+          borderRadius: '32px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          margin: '0 auto 2rem',
+          boxShadow: '0 8px 16px rgba(22, 101, 52, 0.15)'
+        }}>
+          <Save size={48} />
         </div>
-        <h2 style={{ color: 'var(--primary)' }}>Oficio Registrado Exitosamente</h2>
-        <p className="text-muted mb-4">El documento ha sido guardado en los registros.</p>
-        <div style={{ background: 'var(--background)', padding: '1rem', borderRadius: 'var(--radius)', fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '2px', color: '#1e3a8a', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.75rem' }}>Oficio Registrado</h2>
+        <p className="text-muted mb-8" style={{ fontSize: '1.05rem' }}>El documento oficial ha sido generado y archivado correctamente con el correlativo:</p>
+        
+        <div style={{ 
+          background: 'hsl(210, 40%, 98%)', 
+          padding: '1.5rem', 
+          borderRadius: '20px', 
+          fontSize: '2.5rem', 
+          fontWeight: 900, 
+          letterSpacing: '4px', 
+          color: 'var(--primary)', 
+          marginBottom: '2.5rem',
+          border: '2px dashed var(--border)',
+          display: 'inline-block',
+          width: '100%'
+        }}>
           {successId}
         </div>
-        <button className="btn btn-primary" onClick={() => setView('home')}>Volver al Inicio</button>
+        
+        <button className="btn btn-primary w-full" onClick={() => setView('home')} style={{ padding: '1rem', fontSize: '1.125rem' }}>Finalizar y Volver</button>
       </div>
     );
   }
 
   return (
-    <div className="card animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto' }}>
-      <button onClick={() => setView('home')} className="btn" style={{ padding: 0, marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
-        <ArrowLeft size={20} /><span style={{ marginLeft: '0.25rem' }}>Volver</span>
+    <div className="animate-fade-in" style={{ maxWidth: '640px', margin: '0 auto' }}>
+      <button onClick={() => setView('home')} className="btn" style={{ padding: 0, marginBottom: '2rem', color: 'var(--text-muted)' }}>
+        <ArrowLeft size={18} /><span style={{ marginLeft: '0.5rem', fontWeight: 600 }}>Volver a la selección de trámites</span>
       </button>
 
-      <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Registro de oficios 2026</h2>
-      <p className="text-muted mb-4" style={{ fontSize: '0.875rem' }}>Complete los datos del documento. El correlativo se generará automáticamente al guardar para evitar duplicados.</p>
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div>
-          <label className="input-label">¿Quién emite el oficio?</label>
-          <select className="input-field" required value={formData.emisorId} onChange={e => setFormData({ ...formData, emisorId: e.target.value })}>
-            <option value="">-- Seleccionar Nombre --</option>
-            {oficioEmitters.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="input-label">Destinatario</label>
-          <input type="text" className="input-field" placeholder="Ej. Ministerio de Educación..." required value={formData.destinatario} onChange={e => setFormData({ ...formData, destinatario: e.target.value })} />
-        </div>
-        <div>
-          <label className="input-label">Materia o Asunto</label>
-          <input type="text" className="input-field" placeholder="Título breve del documento..." required value={formData.materia} onChange={e => setFormData({ ...formData, materia: e.target.value })} />
-        </div>
-        <div>
-          <label className="input-label">Descripción</label>
-          <textarea className="input-field" rows="4" placeholder="Breve resumen del contenido..." required value={formData.descripcion} onChange={e => setFormData({ ...formData, descripcion: e.target.value })} />
+      <div className="card" style={{ padding: '3rem' }}>
+        <div className="flex items-center gap-4 mb-8">
+          <div style={{ background: 'rgba(37, 99, 235, 0.1)', color: 'var(--primary)', padding: '0.75rem', borderRadius: '16px' }}>
+            <FileText size={28} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>Registro de Oficios</h2>
+            <p className="text-muted" style={{ fontSize: '0.875rem', margin: 0 }}>Cerrando ciclo administrativo 2026</p>
+          </div>
         </div>
 
-        <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end' }}>
-          <button type="button" className="btn btn-outline" onClick={() => setView('home')} disabled={loading}>Cancelar</button>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Generando...' : 'Generar y Registrar Oficio'}
-          </button>
-        </div>
-      </form>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div>
+            <label className="input-label">Emisor Responsable</label>
+            <select className="input-field" required value={formData.emisorId} onChange={e => setFormData({ ...formData, emisorId: e.target.value })}>
+              <option value="">-- Seleccionar Identidad --</option>
+              {oficioEmitters.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="input-label">Institución o Persona Destinataria</label>
+            <input type="text" className="input-field" placeholder="Ej: Dirección Regional de Educación..." required value={formData.destinatario} onChange={e => setFormData({ ...formData, destinatario: e.target.value })} />
+          </div>
+          <div>
+            <label className="input-label">Materia o Asunto Principal</label>
+            <input type="text" className="input-field" placeholder="Ej: Solicitud de insumos pedagógicos..." required value={formData.materia} onChange={e => setFormData({ ...formData, materia: e.target.value })} />
+          </div>
+          <div>
+            <label className="input-label">Resumen del Contenido</label>
+            <textarea className="input-field" rows="4" placeholder="Describa brevemente el objetivo del documento..." required value={formData.descripcion} onChange={e => setFormData({ ...formData, descripcion: e.target.value })} />
+          </div>
+
+          <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end' }}>
+            <button type="button" className="btn btn-outline" onClick={() => setView('home')} disabled={loading}>Descartar</button>
+            <button type="submit" className="btn btn-primary" disabled={loading} style={{ minWidth: '220px' }}>
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin" style={{ width: '16px', height: '16px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%' }}></div>
+                  Registrando...
+                </div>
+              ) : 'Generar Correlativo'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
@@ -358,118 +437,144 @@ function PermisoForm({ setView }) {
 
   if (successId) {
     return (
-      <div className="card text-center animate-fade-in" style={{ maxWidth: '500px', margin: '3rem auto', padding: '3rem' }}>
-        <div style={{ background: '#dcfce7', color: '#166534', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-          <Save size={40} />
+      <div className="card text-center animate-fade-in" style={{ maxWidth: '480px', margin: '4rem auto', padding: '4rem 3rem', boxShadow: 'var(--shadow-xl)', border: '1px solid rgba(255,255,255,0.8)' }}>
+        <div style={{ 
+          background: 'linear-gradient(135deg, #dcfce7, #bbf7d0)', 
+          color: '#166534', 
+          width: '96px', 
+          height: '96px', 
+          borderRadius: '32px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          margin: '0 auto 2rem',
+          boxShadow: '0 8px 16px rgba(22, 101, 52, 0.15)'
+        }}>
+          <Calendar size={48} />
         </div>
-        <h2 style={{ color: 'var(--primary)' }}>Permiso Guardado Exitosamente</h2>
-        <p className="text-muted mb-4">El comprobante ha sido registrado y se ha enviado un correo de respaldo incluyendo el balance de tus días.</p>
-        <div style={{ background: 'var(--background)', padding: '1rem', borderRadius: 'var(--radius)', fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '2px', color: '#1e3a8a', marginBottom: '2rem' }}>
-          {successId}
-        </div>
-        <button className="btn btn-primary" onClick={() => setView('home')}>Volver al Inicio</button>
+        <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.75rem' }}>Permiso Registrado</h2>
+        <p className="text-muted mb-8" style={{ fontSize: '1.05rem' }}>Se ha generado el comprobante <strong>#{successId}</strong>. El funcionario recibirá un correo con el detalle y balance actualizado.</p>
+        
+        <button className="btn btn-primary w-full" onClick={() => setView('home')} style={{ padding: '1rem', fontSize: '1.125rem' }}>Finalizar y Volver</button>
       </div>
     );
   }
 
   return (
-    <div className="card animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto' }}>
-      <button onClick={() => setView('home')} className="btn" style={{ padding: 0, marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
-        <ArrowLeft size={20} /><span style={{ marginLeft: '0.25rem' }}>Volver</span>
+    <div className="animate-fade-in" style={{ maxWidth: '700px', margin: '0 auto' }}>
+      <button onClick={() => setView('home')} className="btn" style={{ padding: 0, marginBottom: '2rem', color: 'var(--text-muted)' }}>
+        <ArrowLeft size={18} /><span style={{ marginLeft: '0.5rem', fontWeight: 600 }}>Volver a la selección de trámites</span>
       </button>
 
-      <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Registro de permisos administrativos 2026</h2>
-
-      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '1rem', borderRadius: 'var(--radius)', marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-        <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px' }} />
-        <p style={{ fontSize: '0.875rem', margin: 0 }}><strong>Nota Importante:</strong> Este módulo es para registrar permisos que <u>ya fueron aprobados</u> previamente. El sistema alertará o bloqueará si se exceden los 6 días anuales permitidos.</p>
-      </div>
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div>
-          <label className="input-label">Funcionario</label>
-          <select className="input-field" required value={formData.funcionarioId} onChange={e => setFormData({ ...formData, funcionarioId: e.target.value })}>
-            <option value="">-- Seleccionar Funcionario --</option>
-            {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
-        </div>
-
-        {loadingDays && <p className="text-muted" style={{ fontSize: '0.875rem' }}>Calculando días disponibles...</p>}
-        {daysInfo && (
-          <div style={{ padding: '0.75rem', backgroundColor: '#f8fafc', border: '1px solid var(--border)', borderRadius: 'var(--radius)', display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.875rem', color: 'var(--text-main)' }}>Histórico Días Usados: <strong>{daysInfo.taken}</strong></span>
-            <span style={{ fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 'bold' }}>Disponibles: {daysInfo.left}</span>
+      <div className="card" style={{ padding: '3rem' }}>
+        <div className="flex items-center gap-4 mb-2">
+          <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '0.75rem', borderRadius: '16px' }}>
+            <Calendar size={28} />
           </div>
-        )}
-
-        <div>
-          <label className="input-label">Tipo de Permiso</label>
-          <select className="input-field" value={formData.tipoPermiso} onChange={(e) => setFormData({ ...formData, tipoPermiso: e.target.value })} required>
-            <option value="Día Administrativo">📋 Día Administrativo (Carga a los 6 días)</option>
-            <option value="Día de Cumpleaños">🎂 Día de Cumpleaños</option>
-            <option value="Permiso por Matrimonio / Unión Civil">💍 Permiso por Matrimonio / Unión Civil</option>
-            <option value="Permiso por Fallecimiento">🖤 Permiso por Fallecimiento (Familiar Directo)</option>
-            <option value="Permiso sin goce de sueldo">💸 Permiso sin goce de sueldo (NUEVO)</option>
-            <option value="Permiso por Especialidad">🎓 Permiso por Especialidad</option>
-            <option value="Justificación Médica">🏥 Justificación Médica</option>
-          </select>
+          <div>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>Registro de Permisos</h2>
+            <p className="text-muted" style={{ fontSize: '0.875rem', margin: 0 }}>Gestión de ausencias justificadas 2026</p>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-          <div style={{ flex: 1 }}>
-            <label className="input-label">Jornada</label>
-            <select className="input-field" value={formData.jornada} onChange={(e) => {
-              const newJornada = e.target.value;
-              setFormData(prev => ({
-                ...prev,
-                jornada: newJornada,
-                // Force end date to be same as start date if it's a half day
-                fechaFin: newJornada.includes('Medio Día') ? prev.fechaInicio : prev.fechaFin
-              }));
-            }} required>
-              <option value="Completa">Día Completo</option>
-              <option value="Medio Día (Mañana)">Medio Día (Mañana)</option>
-              <option value="Medio Día (Tarde)">Medio Día (Tarde)</option>
+        <div style={{ background: 'linear-gradient(135deg, hsl(20, 100%, 97%), hsl(20, 100%, 94%))', border: '1px solid hsl(20, 100%, 90%)', color: 'hsl(20, 100%, 30%)', padding: '1.25rem', borderRadius: '20px', marginBottom: '2rem', marginTop: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <AlertCircle size={24} style={{ flexShrink: 0 }} />
+          <p style={{ fontSize: '0.875rem', margin: 0, fontWeight: 500 }}>
+            <strong>IMPORTANTE:</strong> Registro de permisos <u>pre-aprobados</u>. El sistema valida automáticamente el tope de 6 días anuales.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div>
+            <label className="input-label">Nombre del Funcionario</label>
+            <select className="input-field" required value={formData.funcionarioId} onChange={e => setFormData({ ...formData, funcionarioId: e.target.value })}>
+              <option value="">-- Seleccionar de la lista --</option>
+              {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
             </select>
           </div>
-        </div>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <div style={{ flex: 1 }}>
-            <label className="input-label">Fecha Inicio</label>
-            <input type="date" className="input-field" required value={formData.fechaInicio} onChange={(e) => {
-              const newStart = e.target.value;
-              setFormData(prev => ({
-                ...prev,
-                fechaInicio: newStart,
-                // Match end date automatically if half day
-                fechaFin: prev.jornada.includes('Medio Día') ? newStart : prev.fechaFin
-              }));
-            }} />
+          {loadingDays && (
+            <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-xl">
+              <div className="animate-spin" style={{ width: '14px', height: '14px', border: '2px solid var(--primary)', borderTopColor: 'transparent', borderRadius: '50%' }}></div>
+              <span className="text-muted" style={{ fontSize: '0.875rem' }}>Verificando balance administrativo...</span>
+            </div>
+          )}
+
+          {daysInfo && (
+            <div className="flex gap-4 animate-fade-in">
+              <div style={{ flex: 1, padding: '1.25rem', backgroundColor: 'hsl(210, 40%, 98%)', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                <p className="text-muted" style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Días Utilizados</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>{daysInfo.taken}</p>
+              </div>
+              <div style={{ flex: 1, padding: '1.25rem', backgroundColor: 'hsla(221, 83%, 53%, 0.05)', borderRadius: '16px', border: '1px solid hsla(221, 83%, 53%, 0.1)' }}>
+                <p className="text-muted" style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Días Disponibles</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>{daysInfo.left}</p>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1.5rem' }}>
+            <div>
+              <label className="input-label">Categoría de Permiso</label>
+              <select className="input-field" value={formData.tipoPermiso} onChange={(e) => setFormData({ ...formData, tipoPermiso: e.target.value })} required>
+                <option value="Día Administrativo">Día Administrativo</option>
+                <option value="Día de Cumpleaños">Día de Cumpleaños</option>
+                <option value="Permiso por Matrimonio">Matrimonio / Unión Civil</option>
+                <option value="Permiso por Fallecimiento">Fallecimiento</option>
+                <option value="Permiso sin goce de sueldo">Sin goce de sueldo</option>
+                <option value="Permiso por Especialidad">Especialidad</option>
+                <option value="Justificación Médica">Justificación Médica</option>
+              </select>
+            </div>
+            <div>
+              <label className="input-label">Jornada</label>
+              <select className="input-field" value={formData.jornada} onChange={(e) => {
+                const newJornada = e.target.value;
+                setFormData(prev => ({
+                  ...prev,
+                  jornada: newJornada,
+                  fechaFin: newJornada.includes('Medio Día') ? prev.fechaInicio : prev.fechaFin
+                }));
+              }} required>
+                <option value="Completa">Completa</option>
+                <option value="Medio Día (Mañana)">M. Mañana</option>
+                <option value="Medio Día (Tarde)">M. Tarde</option>
+              </select>
+            </div>
           </div>
-          <div style={{ flex: 1 }}>
-            <label className="input-label">Fecha Fin (inclusive)</label>
-            <input type="date" className="input-field" required value={formData.fechaFin} onChange={(e) => setFormData({ ...formData, fechaFin: e.target.value })}
-              // Deshabilitar la fecha fin si es medio dia para evitar inconsistencias
-              disabled={formData.jornada.includes('Medio Día')}
-              // Add a hint title if disabled
-              title={formData.jornada.includes('Medio Día') ? "Medio día solo aplica a una misma fecha" : ""}
-            />
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div>
+              <label className="input-label">Fecha de Inicio</label>
+              <input type="date" className="input-field" required value={formData.fechaInicio} onChange={(e) => {
+                const newStart = e.target.value;
+                setFormData(prev => ({ ...prev, fechaInicio: newStart, fechaFin: prev.jornada.includes('Medio Día') ? newStart : prev.fechaFin }));
+              }} />
+            </div>
+            <div>
+              <label className="input-label">Fecha de Término</label>
+              <input type="date" className="input-field" required value={formData.fechaFin} disabled={formData.jornada.includes('Medio Día')} onChange={(e) => setFormData({ ...formData, fechaFin: e.target.value })} />
+            </div>
           </div>
-        </div>
 
-        <div>
-          <label className="input-label">Motivo u Observación</label>
-          <textarea className="input-field" rows="3" placeholder="Información adicional del permiso..." required value={formData.motivo} onChange={(e) => setFormData({ ...formData, motivo: e.target.value })} />
-        </div>
+          <div>
+            <label className="input-label">Detalles u Observaciones</label>
+            <textarea className="input-field" rows="3" placeholder="Indique brevemente el motivo..." required value={formData.motivo} onChange={(e) => setFormData({ ...formData, motivo: e.target.value })} />
+          </div>
 
-        <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end' }}>
-          <button type="button" className="btn btn-outline" onClick={() => setView('home')} disabled={loading}>Cancelar</button>
-          <button type="submit" className="btn btn-primary" disabled={loading || (formData.tipoPermiso === 'Día Administrativo' && daysInfo && daysInfo.left <= 0)}>
-            {loading ? 'Guardando y Enviando Correo...' : 'Registrar y Notificar'}
-          </button>
-        </div>
-      </form>
+          <div className="flex gap-4 mt-6" style={{ justifyContent: 'flex-end' }}>
+            <button type="button" className="btn btn-outline" onClick={() => setView('home')} disabled={loading}>Descartar</button>
+            <button type="submit" className="btn btn-primary" disabled={loading || (formData.tipoPermiso === 'Día Administrativo' && daysInfo && daysInfo.left <= 0)} style={{ minWidth: '240px' }}>
+              {loading ? (
+                 <div className="flex items-center gap-2">
+                 <div className="animate-spin" style={{ width: '16px', height: '16px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%' }}></div>
+                 Procesando...
+               </div>
+              ) : 'Registrar Ausencia'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
@@ -484,6 +589,29 @@ function Dashboard({ setView }) {
   const [editingPermiso, setEditingPermiso] = useState(null);
   const [historyFuncionario, setHistoryFuncionario] = useState(null);
   const [permisoViewMode, setPermisoViewMode] = useState('table'); // 'table' or 'calendar'
+
+  const isAnyModalOpen = Boolean(editingOficio || editingPermiso || historyFuncionario);
+
+  useEffect(() => {
+    if (!isAnyModalOpen) return;
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setEditingOficio(null);
+        setEditingPermiso(null);
+        setHistoryFuncionario(null);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [isAnyModalOpen]);
 
   useEffect(() => {
     async function fetchData() {
@@ -505,9 +633,13 @@ function Dashboard({ setView }) {
 
   const handleEditOficioSubmit = async (e) => {
     e.preventDefault();
-    await updateOficio(editingOficio.id, editingOficio);
-    setOficios(oficios.map(o => o.id === editingOficio.id ? editingOficio : o));
-    setEditingOficio(null);
+    try {
+      await updateOficio(editingOficio.id, editingOficio);
+      setOficios(oficios.map(o => o.id === editingOficio.id ? editingOficio : o));
+      setEditingOficio(null);
+    } catch (error) {
+      alert('No se pudo guardar el oficio: ' + error.message);
+    }
   };
 
   const handleDeletePermiso = async (id) => {
@@ -519,11 +651,15 @@ function Dashboard({ setView }) {
 
   const handleEditPermisoSubmit = async (e) => {
     e.preventDefault();
-    await updatePermiso(editingPermiso.id, editingPermiso);
-    // Recargar permisos para obtener el calculo correcto de diasUsados de la BD
-    const p = await loadPermisos();
-    setPermisos(p);
-    setEditingPermiso(null);
+    try {
+      await updatePermiso(editingPermiso.id, editingPermiso);
+      // Recargar permisos para obtener el calculo correcto de diasUsados de la BD
+      const p = await loadPermisos();
+      setPermisos(p);
+      setEditingPermiso(null);
+    } catch (error) {
+      alert('No se pudo guardar el permiso: ' + error.message);
+    }
   };
 
   const exportToCSV = () => {
@@ -579,14 +715,49 @@ function Dashboard({ setView }) {
         <ArrowLeft size={20} /><span style={{ marginLeft: '0.25rem' }}>Volver al Menú Principal</span>
       </button>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-        <div className="card" style={{ flex: 1, borderTop: '4px solid var(--primary)' }}>
-          <p className="text-muted" style={{ fontSize: '0.875rem' }}>Total Oficios Emitidos</p>
-          <h3 style={{ fontSize: '2rem' }}>{oficios.length}</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+        <div className="card" style={{ 
+          background: 'linear-gradient(135deg, white, #f8fafc)', 
+          borderLeft: '6px solid var(--primary)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1.5rem',
+          padding: '1.75rem'
+        }}>
+          <div style={{ 
+            background: 'rgba(37, 99, 235, 0.1)', 
+            color: 'var(--primary)', 
+            padding: '1rem', 
+            borderRadius: '18px' 
+          }}>
+            <FileText size={32} />
+          </div>
+          <div>
+            <p className="text-muted" style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>Oficios Emitidos</p>
+            <h3 style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>{oficios.length}</h3>
+          </div>
         </div>
-        <div className="card" style={{ flex: 1, borderTop: '4px solid #166534' }}>
-          <p className="text-muted" style={{ fontSize: '0.875rem' }}>Total Permisos Registrados</p>
-          <h3 style={{ fontSize: '2rem' }}>{permisos.length}</h3>
+
+        <div className="card" style={{ 
+          background: 'linear-gradient(135deg, white, #f8fafc)', 
+          borderLeft: '6px solid #10b981',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1.5rem',
+          padding: '1.75rem'
+        }}>
+          <div style={{ 
+            background: 'rgba(16, 185, 129, 0.1)', 
+            color: '#10b981', 
+            padding: '1rem', 
+            borderRadius: '18px' 
+          }}>
+            <Calendar size={32} />
+          </div>
+          <div>
+            <p className="text-muted" style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>Permisos Registrados</p>
+            <h3 style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>{permisos.length}</h3>
+          </div>
         </div>
       </div>
 
@@ -656,27 +827,62 @@ function Dashboard({ setView }) {
         </div>
       )}
 
-      <div style={{ backgroundColor: 'white', borderBottom: '1px solid var(--border)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div className="flex gap-4">
-          <button onClick={() => setTab('oficios')} className={`btn ${tab === 'oficios' ? 'btn-primary' : 'text-muted'}`} style={tab !== 'oficios' ? { background: 'transparent', color: 'var(--text-color)' } : {}}>
+      <div style={{ 
+        background: 'rgba(255,255,255,0.5)', 
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid var(--border)', 
+        marginBottom: '2rem', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        flexWrap: 'wrap', 
+        gap: '1.5rem',
+        padding: '0.5rem 1rem',
+        borderRadius: 'var(--radius-sm)'
+      }}>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setTab('oficios')} 
+            className="btn"
+            style={{ 
+              background: tab === 'oficios' ? 'var(--primary)' : 'transparent', 
+              color: tab === 'oficios' ? 'white' : 'var(--text-muted)',
+              boxShadow: tab === 'oficios' ? '0 4px 12px rgba(37, 99, 235, 0.2)' : 'none',
+              borderRadius: '12px',
+              padding: '0.625rem 1.25rem'
+            }}
+          >
+            <FileText size={18} />
             Oficios
           </button>
-          <button onClick={() => setTab('permisos')} className={`btn ${tab === 'permisos' ? 'btn-primary' : 'text-muted'}`} style={tab !== 'permisos' ? { background: 'transparent', color: 'var(--text-color)' } : {}}>
+          <button 
+            onClick={() => setTab('permisos')} 
+            className="btn"
+            style={{ 
+              background: tab === 'permisos' ? 'var(--primary)' : 'transparent', 
+              color: tab === 'permisos' ? 'white' : 'var(--text-muted)',
+              boxShadow: tab === 'permisos' ? '0 4px 12px rgba(37, 99, 235, 0.2)' : 'none',
+              borderRadius: '12px',
+              padding: '0.625rem 1.25rem'
+            }}
+          >
+            <Calendar size={18} />
             Permisos
           </button>
         </div>
         
         {tab === 'permisos' && (
-          <div className="flex bg-gray-100 p-1 rounded-lg gap-1" style={{ background: '#f1f5f9', padding: '0.25rem', borderRadius: '0.5rem' }}>
+          <div className="flex bg-gray-100 p-1 rounded-lg gap-1" style={{ background: '#f1f5f9', padding: '0.35rem', borderRadius: '12px' }}>
             <button 
               onClick={() => setPermisoViewMode('table')} 
               className="btn" 
               style={{ 
-                padding: '0.25rem 0.75rem', 
-                fontSize: '0.75rem', 
+                padding: '0.4rem 1rem', 
+                fontSize: '0.8125rem', 
                 background: permisoViewMode === 'table' ? 'white' : 'transparent',
-                boxShadow: permisoViewMode === 'table' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                color: permisoViewMode === 'table' ? 'var(--primary)' : 'var(--text-muted)'
+                boxShadow: permisoViewMode === 'table' ? 'var(--shadow-sm)' : 'none',
+                color: permisoViewMode === 'table' ? 'var(--primary)' : 'var(--text-muted)',
+                borderRadius: '8px'
               }}
             >
               Lista
@@ -685,11 +891,12 @@ function Dashboard({ setView }) {
               onClick={() => setPermisoViewMode('calendar')} 
               className="btn" 
               style={{ 
-                padding: '0.25rem 0.75rem', 
-                fontSize: '0.75rem', 
+                padding: '0.4rem 1rem', 
+                fontSize: '0.8125rem', 
                 background: permisoViewMode === 'calendar' ? 'white' : 'transparent',
-                boxShadow: permisoViewMode === 'calendar' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                color: permisoViewMode === 'calendar' ? 'var(--primary)' : 'var(--text-muted)'
+                boxShadow: permisoViewMode === 'calendar' ? 'var(--shadow-sm)' : 'none',
+                color: permisoViewMode === 'calendar' ? 'var(--primary)' : 'var(--text-muted)',
+                borderRadius: '8px'
               }}
             >
               Calendario
@@ -697,80 +904,116 @@ function Dashboard({ setView }) {
           </div>
         )}
 
-        <div className="flex gap-2">
-          <button onClick={exportToCSV} className="btn btn-outline" style={{ fontSize: '0.85rem', padding: '0.4rem 0.75rem' }} title="Descargar como Excel">
-            <Download size={16} /> <span className="hidden sm:inline">Descargar CSV</span>
+        <div className="flex gap-3">
+          <button onClick={exportToCSV} className="btn btn-outline" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem', borderRadius: '12px' }} title="Descargar como Excel">
+            <Download size={18} /> <span className="hidden sm:inline">Exportar CSV</span>
           </button>
-          <button onClick={shareWhatsApp} className="btn" style={{ fontSize: '0.85rem', padding: '0.4rem 0.75rem', background: '#25D366', color: 'white' }} title="Enviar Reporte por WhatsApp">
-            <MessageCircle size={16} /> <span className="hidden sm:inline">Enviar Resumen</span>
+          <button onClick={shareWhatsApp} className="btn" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem', background: '#22c55e', color: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)' }} title="Enviar Reporte por WhatsApp">
+            <MessageCircle size={18} /> <span className="hidden sm:inline">WhatsApp</span>
           </button>
         </div>
       </div>
 
       {loading ? (
-        <p className="text-center text-muted">Cargando base de datos...</p>
+        <div className="flex flex-col items-center justify-center p-12">
+          <div className="animate-spin" style={{ width: '40px', height: '40px', border: '4px solid rgba(0,0,0,0.1)', borderTopColor: 'var(--primary)', borderRadius: '50%', marginBottom: '1rem' }}></div>
+          <p className="text-muted">Sincronizando con la base de datos...</p>
+        </div>
       ) : tab === 'oficios' ? (
-        <div className="card table-container">
+        <div className="table-container animate-fade-in">
           <table>
-            <thead><tr><th>Nº Oficio</th><th>Fecha</th><th>Emisor</th><th>Destinatario</th><th>Materia</th><th className="text-center">Acciones</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Correlativo</th>
+                <th>Fecha Emisión</th>
+                <th>Emisor Responsable</th>
+                <th>Destinatario</th>
+                <th>Materia / Asunto</th>
+                <th style={{ textAlign: 'right' }}>Acciones</th>
+              </tr>
+            </thead>
             <tbody>
               {oficios.map(o => (
                 <tr key={o.id}>
-                  <td className="font-semibold">{o.id}</td>
+                  <td style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '1rem' }}>#{o.id}</td>
                   <td>{new Date(o.createdAt || o.fechaEmision).toLocaleDateString()}</td>
-                  <td>{o.emisorNombre}</td>
+                  <td style={{ fontWeight: 500 }}>{o.emisorNombre}</td>
                   <td>{o.destinatario}</td>
-                  <td>{o.materia}</td>
-                  <td className="text-center">
-                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', marginRight: '0.5rem' }} onClick={() => setEditingOficio(o)} title="Editar Oficio">
-                      <Edit2 size={16} />
-                    </button>
-                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', color: '#ef4444', borderColor: '#fee2e2' }} onClick={() => handleDeleteOficio(o.id)} title="Eliminar">
-                      <Trash2 size={16} />
-                    </button>
+                  <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.materia}</td>
+                  <td style={{ textAlign: 'right' }}>
+                    <div className="flex justify-end gap-2">
+                      <button className="btn btn-outline" style={{ padding: '0.4rem', borderRadius: '10px' }} onClick={() => setEditingOficio(o)} title="Editar Oficio">
+                        <Edit2 size={16} />
+                      </button>
+                      <button className="btn btn-outline" style={{ padding: '0.4rem', borderRadius: '10px', color: '#ef4444', border: '1px solid #fee2e2' }} onClick={() => handleDeleteOficio(o.id)} title="Eliminar Permanente">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
-              {oficios.length === 0 && <tr><td colSpan="6" className="text-center">No hay oficios.</td></tr>}
+              {oficios.length === 0 && <tr><td colSpan="6" className="text-center p-12 text-muted">No se han encontrado registros de oficios.</td></tr>}
             </tbody>
           </table>
         </div>
       ) : permisoViewMode === 'calendar' ? (
         <PermissionCalendar permisos={permisos} />
       ) : (
-        <div className="card table-container">
+        <div className="table-container animate-fade-in">
           <table>
-            <thead><tr><th>Nº Permiso</th><th>Fecha Registro</th><th>Funcionario</th><th>Fechas</th><th>Días</th><th className="text-center">Acciones</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Nº Ticket</th>
+                <th>Registro</th>
+                <th>Funcionario</th>
+                <th>Periodo de Ausencia</th>
+                <th>Días</th>
+                <th style={{ textAlign: 'right' }}>Acciones</th>
+              </tr>
+            </thead>
             <tbody>
               {permisos.map(p => (
                 <tr key={p.id}>
-                  <td className="font-semibold">{p.id}</td>
+                  <td style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '1rem' }}>#{p.id}</td>
                   <td>{new Date(p.createdAt || new Date()).toLocaleDateString()}</td>
                   <td>
-                    <span
-                      style={{ cursor: 'pointer', color: 'var(--primary)', textDecoration: 'underline', fontWeight: 500 }}
+                    <button
+                      className="btn"
+                      style={{ 
+                        padding: '0.25rem 0.5rem', 
+                        fontSize: '0.9375rem',
+                        color: 'var(--primary)', 
+                        fontWeight: 600,
+                        background: 'rgba(37, 99, 235, 0.05)',
+                        border: '1px solid rgba(37, 99, 235, 0.1)',
+                        borderRadius: '8px'
+                      }}
                       onClick={() => setHistoryFuncionario({ id: p.funcionarioId, nombre: p.funcionarioNombre })}
-                      title="Ver historial de permisos"
+                      title="Ver historial completo"
                     >
                       {p.funcionarioNombre}
-                    </span>
+                    </button>
                   </td>
-                  <td>{p.fechaInicio} a {p.fechaFin}</td>
+                  <td style={{ fontWeight: 500 }}>{p.fechaInicio} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>→</span> {p.fechaFin}</td>
                   <td>
-                    <span className="badge badge-gray">{p.diasUsados}</span>
-                    {p.jornada && p.jornada.includes('Medio') && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px' }}>{p.jornada}</div>}
+                    <div className="flex flex-col">
+                      <span className="badge" style={{ background: '#f1f5f9', color: '#475569', width: 'fit-content' }}>{p.diasUsados} días</span>
+                      {p.jornada && p.jornada.includes('Medio') && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{p.jornada}</span>}
+                    </div>
                   </td>
-                  <td className="text-center">
-                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', marginRight: '0.5rem' }} onClick={() => setEditingPermiso(p)} title="Editar Permiso">
-                      <Edit2 size={16} />
-                    </button>
-                    <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem', color: '#ef4444', borderColor: '#fee2e2' }} onClick={() => handleDeletePermiso(p.id)} title="Eliminar">
-                      <Trash2 size={16} />
-                    </button>
+                  <td style={{ textAlign: 'right' }}>
+                    <div className="flex justify-end gap-2">
+                      <button className="btn btn-outline" style={{ padding: '0.4rem', borderRadius: '10px' }} onClick={() => setEditingPermiso(p)} title="Modificar Permiso">
+                        <Edit2 size={16} />
+                      </button>
+                      <button className="btn btn-outline" style={{ padding: '0.4rem', borderRadius: '10px', color: '#ef4444', border: '1px solid #fee2e2' }} onClick={() => handleDeletePermiso(p.id)} title="Eliminar Registro">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
-              {permisos.length === 0 && <tr><td colSpan="6" className="text-center">No hay permisos.</td></tr>}
+              {permisos.length === 0 && <tr><td colSpan="6" className="text-center p-12 text-muted">No se han encontrado registros de permisos.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -778,18 +1021,22 @@ function Dashboard({ setView }) {
 
       {/* MODAL DE EDICIÓN OFICIO */}
       {editingOficio && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '500px', animation: 'fadeIn 0.2s ease-out' }}>
-            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Editar Oficio #{editingOficio.id}</h3>
-            <form onSubmit={handleEditOficioSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '70vh', overflowY: 'auto', paddingRight: '0.5rem' }}>
+        <div onClick={() => setEditingOficio(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: 'var(--shadow-xl)', border: '1px solid rgba(255,255,255,0.8)' }}>
+            <div className="flex justify-between items-center mb-8">
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>Editar Oficio #{editingOficio.id}</h3>
+              <button onClick={() => setEditingOficio(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
+            </div>
+            
+            <form onSubmit={handleEditOficioSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
-                <label className="input-label">Emisor</label>
+                <label className="input-label">Emisor Responsable</label>
                 <select className="input-field" required value={editingOficio.emisorId || ''} onChange={(e) => {
                   const selectedId = parseInt(e.target.value);
                   const emisor = sortedUsers.find(u => u.id === selectedId);
                   setEditingOficio({ ...editingOficio, emisorId: selectedId, emisorNombre: emisor ? emisor.name : '' });
                 }}>
-                  <option value="">-- Seleccionar Nuevo Emisor --</option>
+                  <option value="">-- Seleccionar Emisor --</option>
                   {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                 </select>
               </div>
@@ -802,12 +1049,12 @@ function Dashboard({ setView }) {
                 <input type="text" className="input-field" required value={editingOficio.materia} onChange={(e) => setEditingOficio({ ...editingOficio, materia: e.target.value })} />
               </div>
               <div>
-                <label className="input-label">Descripción</label>
-                <textarea className="input-field" rows="3" required value={editingOficio.descripcion} onChange={(e) => setEditingOficio({ ...editingOficio, descripcion: e.target.value })} />
+                <label className="input-label">Descripción Detallada</label>
+                <textarea className="input-field" rows="4" required value={editingOficio.descripcion} onChange={(e) => setEditingOficio({ ...editingOficio, descripcion: e.target.value })} />
               </div>
-              <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end', position: 'sticky', bottom: '-1rem', background: 'white', paddingTop: '1rem', paddingBottom: '0.5rem' }}>
-                <button type="button" className="btn btn-outline" onClick={() => setEditingOficio(null)}>Cancelar</button>
-                <button type="submit" className="btn btn-primary">Guardar Cambios</button>
+              <div className="flex gap-4 mt-6" style={{ justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setEditingOficio(null)}>Descartar</button>
+                <button type="submit" className="btn btn-primary" style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>Guardar Cambios</button>
               </div>
             </form>
           </div>
@@ -816,10 +1063,14 @@ function Dashboard({ setView }) {
 
       {/* MODAL DE EDICIÓN PERMISO */}
       {editingPermiso && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '500px', animation: 'fadeIn 0.2s ease-out' }}>
-            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Editar Permiso #{editingPermiso.id}</h3>
-            <form onSubmit={handleEditPermisoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '70vh', overflowY: 'auto', paddingRight: '0.5rem' }}>
+        <div onClick={() => setEditingPermiso(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: 'var(--shadow-xl)', border: '1px solid rgba(255,255,255,0.8)' }}>
+            <div className="flex justify-between items-center mb-8">
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>Editar Permiso #{editingPermiso.id}</h3>
+              <button onClick={() => setEditingPermiso(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
+            </div>
+
+            <form onSubmit={handleEditPermisoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
                 <label className="input-label">Funcionario</label>
                 <select className="input-field" required value={editingPermiso.funcionarioId || ''} onChange={(e) => {
@@ -831,19 +1082,19 @@ function Dashboard({ setView }) {
                   {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                 </select>
               </div>
-              <div>
-                <label className="input-label">Tipo de Permiso</label>
-                <select className="input-field" value={editingPermiso.tipoPermiso} onChange={(e) => setEditingPermiso({ ...editingPermiso, tipoPermiso: e.target.value })} required>
-                  <option value="Día Administrativo">Día Administrativo (Carga a los 6 días)</option>
-                  <option value="Día de Cumpleaños">Día de Cumpleaños</option>
-                  <option value="Permiso por Matrimonio / Unión Civil">Permiso por Matrimonio / Unión Civil</option>
-                  <option value="Permiso por Fallecimiento">Permiso por Fallecimiento (Familiar Directo)</option>
-                  <option value="Permiso sin goce de sueldo">Permiso sin goce de sueldo</option>
-                  <option value="Justificación Médica">Justificación Médica</option>
-                </select>
-              </div>
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                <div style={{ flex: 1 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label className="input-label">Tipo de Permiso</label>
+                  <select className="input-field" value={editingPermiso.tipoPermiso} onChange={(e) => setEditingPermiso({ ...editingPermiso, tipoPermiso: e.target.value })} required>
+                    <option value="Día Administrativo">Día Administrativo</option>
+                    <option value="Día de Cumpleaños">Día de Cumpleaños</option>
+                    <option value="Permiso por Matrimonio">Matrimonio / Unión Civil</option>
+                    <option value="Permiso por Fallecimiento">Fallecimiento</option>
+                    <option value="Permiso sin goce de sueldo">Sin goce de sueldo</option>
+                    <option value="Justificación Médica">Justificación Médica</option>
+                  </select>
+                </div>
+                <div>
                   <label className="input-label">Jornada</label>
                   <select className="input-field" value={editingPermiso.jornada || 'Completa'} onChange={(e) => {
                     const newJornada = e.target.value;
@@ -859,24 +1110,26 @@ function Dashboard({ setView }) {
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="input-label">Fecha Inicio</label>
-                <input type="date" className="input-field" required value={editingPermiso.fechaInicio} onChange={(e) => {
-                  const newStart = e.target.value;
-                  setEditingPermiso(prev => ({ ...prev, fechaInicio: newStart, fechaFin: prev.jornada?.includes('Medio Día') ? newStart : prev.fechaFin }));
-                }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label className="input-label">Fecha Inicio</label>
+                  <input type="date" className="input-field" required value={editingPermiso.fechaInicio} onChange={(e) => {
+                    const newStart = e.target.value;
+                    setEditingPermiso(prev => ({ ...prev, fechaInicio: newStart, fechaFin: prev.jornada?.includes('Medio Día') ? newStart : prev.fechaFin }));
+                  }} />
+                </div>
+                <div>
+                  <label className="input-label">Fecha Fin</label>
+                  <input type="date" className="input-field" required value={editingPermiso.fechaFin} disabled={editingPermiso.jornada?.includes('Medio Día')} onChange={(e) => setEditingPermiso({ ...editingPermiso, fechaFin: e.target.value })} />
+                </div>
               </div>
               <div>
-                <label className="input-label">Fecha Fin</label>
-                <input type="date" className="input-field" required value={editingPermiso.fechaFin} disabled={editingPermiso.jornada?.includes('Medio Día')} onChange={(e) => setEditingPermiso({ ...editingPermiso, fechaFin: e.target.value })} />
-              </div>
-              <div>
-                <label className="input-label">Motivo</label>
+                <label className="input-label">Motivo Justificado</label>
                 <textarea className="input-field" rows="2" required value={editingPermiso.motivo} onChange={(e) => setEditingPermiso({ ...editingPermiso, motivo: e.target.value })} />
               </div>
-              <div className="flex gap-4 mt-4" style={{ justifyContent: 'flex-end', position: 'sticky', bottom: '-1rem', background: 'white', paddingTop: '1rem', paddingBottom: '0.5rem' }}>
-                <button type="button" className="btn btn-outline" onClick={() => setEditingPermiso(null)}>Cancelar</button>
-                <button type="submit" className="btn btn-primary">Guardar Cambios</button>
+              <div className="flex gap-4 mt-6" style={{ justifyContent: 'flex-end' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setEditingPermiso(null)}>Descartar</button>
+                <button type="submit" className="btn btn-primary" style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>Guardar Cambios</button>
               </div>
             </form>
           </div>
@@ -885,45 +1138,66 @@ function Dashboard({ setView }) {
 
       {/* MODAL DE HISTORIAL POR FUNCIONARIO */}
       {historyFuncionario && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '650px', maxHeight: '80vh', overflowY: 'auto', animation: 'fadeIn 0.2s ease-out' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.25rem', color: 'var(--primary)', margin: 0 }}>
-                Historial: {historyFuncionario.nombre}
-              </h3>
-              <button className="btn btn-outline" style={{ padding: '0.25rem 0.5rem' }} onClick={() => setHistoryFuncionario(null)}>Cerrar</button>
+        <div onClick={() => setHistoryFuncionario(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ width: '100%', maxWidth: '720px', padding: '2.5rem', boxShadow: 'var(--shadow-xl)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-4">
+                <div style={{ background: 'rgba(37, 99, 235, 0.1)', color: 'var(--primary)', padding: '0.625rem', borderRadius: '14px' }}>
+                  <Calendar size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>Historial de Permisos</h3>
+                  <p className="text-muted" style={{ fontSize: '0.875rem', margin: 0 }}>Funcionario: {historyFuncionario.nombre}</p>
+                </div>
+              </div>
+              <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', borderRadius: '12px' }} onClick={() => setHistoryFuncionario(null)}>Cerrar</button>
             </div>
 
-            <div className="table-container" style={{ margin: 0 }}>
+            <div className="table-container" style={{ margin: 0, boxShadow: 'none', background: 'transparent', border: 'none' }}>
               <table style={{ minWidth: '100%' }}>
-                <thead>
+                <thead style={{ background: '#f8fafc' }}>
                   <tr>
-                    <th style={{ padding: '0.5rem' }}>Nº</th>
-                    <th style={{ padding: '0.5rem' }}>Registro</th>
-                    <th style={{ padding: '0.5rem' }}>Fechas</th>
-                    <th style={{ padding: '0.5rem' }}>Días</th>
+                    <th style={{ padding: '1rem' }}>#</th>
+                    <th style={{ padding: '1rem' }}>Fecha Registro</th>
+                    <th style={{ padding: '1rem' }}>Rango de Permiso</th>
+                    <th style={{ padding: '1rem', textAlign: 'right' }}>Días</th>
                   </tr>
                 </thead>
                 <tbody>
                   {permisos.filter(p => p.funcionarioId === historyFuncionario.id).map(p => (
-                    <tr key={`history-${p.id}`}>
-                      <td style={{ padding: '0.5rem' }}>{p.id}</td>
-                      <td style={{ padding: '0.5rem' }}>{new Date(p.createdAt || new Date()).toLocaleDateString()}</td>
-                      <td style={{ padding: '0.5rem' }}>{p.fechaInicio} a {p.fechaFin}</td>
-                      <td style={{ padding: '0.5rem' }}>
-                        <span className="badge badge-gray">{p.diasUsados}</span>
-                        {p.jornada && p.jornada.includes('Medio') && <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{p.jornada}</div>}
+                    <tr key={`history-${p.id}`} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '1rem', fontWeight: 700, color: 'var(--primary)' }}>{p.id}</td>
+                      <td style={{ padding: '1rem' }}>{new Date(p.createdAt || new Date()).toLocaleDateString()}</td>
+                      <td style={{ padding: '1rem', fontWeight: 500 }}>{p.fechaInicio} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>→</span> {p.fechaFin}</td>
+                      <td style={{ padding: '1rem', textAlign: 'right' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                          <span className="badge" style={{ background: '#f1f5f9', color: '#444' }}>{p.diasUsados} d</span>
+                          {p.jornada && p.jornada.includes('Medio') && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{p.jornada}</span>}
+                        </div>
                       </td>
                     </tr>
                   ))}
                   {permisos.filter(p => p.funcionarioId === historyFuncionario.id).length === 0 && (
-                    <tr><td colSpan="4" className="text-center" style={{ padding: '1rem' }}>Sin registros.</td></tr>
+                    <tr><td colSpan="4" className="text-center p-12 text-muted">No se registran permisos previos para este funcionario.</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
-            <div style={{ marginTop: '1.5rem', textAlign: 'right', fontWeight: 'bold', color: 'var(--text-color)' }}>
-              Total Días Usados: {permisos.filter(p => p.funcionarioId === historyFuncionario.id).reduce((sum, current) => sum + current.diasUsados, 0)} días
+            
+            <div style={{ 
+              marginTop: '2rem', 
+              padding: '1.5rem', 
+              background: 'hsla(221, 83%, 53%, 0.03)', 
+              borderRadius: '20px', 
+              border: '1px solid hsla(221, 83%, 53%, 0.08)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>Cómputo Total Anual:</span>
+              <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--primary)' }}>
+                {permisos.filter(p => p.funcionarioId === historyFuncionario.id).reduce((sum, current) => sum + current.diasUsados, 0)} días utilizados
+              </span>
             </div>
           </div>
         </div>
@@ -982,25 +1256,34 @@ function PermissionCalendar({ permisos }) {
   }
 
   return (
-    <div className="card animate-fade-in" style={{ padding: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h3 style={{ fontSize: '1.25rem', color: 'var(--primary)', margin: 0 }}>
-          Calendario de Permisos - {monthNames[month]} {year}
-        </h3>
-        <div className="flex gap-2">
-          <button onClick={handlePrevMonth} className="btn btn-outline" style={{ padding: '0.4rem' }}>&lt;</button>
-          <button onClick={() => setCurrentDate(new Date())} className="btn btn-outline" style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}>Hoy</button>
-          <button onClick={handleNextMonth} className="btn btn-outline" style={{ padding: '0.4rem' }}>&gt;</button>
+    <div className="card animate-fade-in" style={{ padding: '2.5rem', border: '1px solid var(--border-light)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+        <div className="flex items-center gap-4">
+          <div style={{ background: 'rgba(37, 99, 235, 0.1)', color: 'var(--primary)', padding: '0.625rem', borderRadius: '14px' }}>
+            <Calendar size={24} />
+          </div>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+            Disponibilidad de Personal <span style={{ color: 'var(--text-muted)', fontWeight: 400, marginLeft: '0.5rem' }}>{monthNames[month]} {year}</span>
+          </h3>
+        </div>
+        <div className="flex bg-gray-100 p-1.5 rounded-xl gap-1" style={{ background: '#f1f5f9' }}>
+          <button onClick={handlePrevMonth} className="btn" style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', background: 'white', boxShadow: 'var(--shadow-sm)' }}>
+            <ArrowLeft size={16} />
+          </button>
+          <button onClick={() => setCurrentDate(new Date())} className="btn" style={{ padding: '0.4rem 1rem', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--primary)' }}>Hoy</button>
+          <button onClick={handleNextMonth} className="btn" style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', background: 'white', boxShadow: 'var(--shadow-sm)' }}>
+            <ArrowLeft size={16} style={{ transform: 'rotate(180deg)' }} />
+          </button>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
-        {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-          <div key={d} style={{ fontWeight: 'bold', color: 'var(--text-muted)', fontSize: '0.8rem', paddingBottom: '0.5rem' }}>{d}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.75rem' }}>
+        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(d => (
+          <div key={d} style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', paddingBottom: '1rem' }}>{d.slice(0, 3)}</div>
         ))}
 
         {daysArr.map((day, i) => {
-          if (day === null) return <div key={`empty-${i}`} style={{ height: '80px', background: '#f8fafc', borderRadius: '4px' }}></div>;
+          if (day === null) return <div key={`empty-${i}`} style={{ height: '100px', background: 'rgba(248, 250, 252, 0.5)', borderRadius: '16px' }}></div>;
           
           const date = new Date(year, month, day);
           const dateStr = date.toISOString().split('T')[0];
@@ -1011,32 +1294,46 @@ function PermissionCalendar({ permisos }) {
             <div 
               key={day} 
               style={{ 
-                height: '80px', 
-                background: 'white', 
-                border: isToday ? '2px solid var(--primary)' : '1px solid #e2e8f0',
-                borderRadius: '8px',
-                padding: '0.4rem',
+                minHeight: '100px', 
+                background: isToday ? 'hsla(221, 83%, 53%, 0.03)' : 'white', 
+                border: isToday ? '2px solid var(--primary)' : '1px solid #eef2f6',
+                borderRadius: '16px',
+                padding: '0.75rem',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between',
-                transition: 'all 0.2s'
+                gap: '0.5rem',
+                transition: 'all 0.2s ease',
+                boxShadow: isToday ? '0 4px 12px rgba(37, 99, 235, 0.1)' : 'none'
               }}
             >
-              <div style={{ fontWeight: isToday ? 'bold' : 'normal', fontSize: '0.9rem', color: isToday ? 'var(--primary)' : 'inherit' }}>{day}</div>
+              <div style={{ 
+                fontWeight: 800, 
+                fontSize: '0.875rem', 
+                color: isToday ? 'var(--primary)' : '#94a3b8',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                {day}
+                {isToday && <div style={{ width: '6px', height: '6px', background: 'var(--primary)', borderRadius: '50%' }}></div>}
+              </div>
+              
               {info && info.count > 0 && (
                 <div 
+                  className="animate-fade-in"
                   title={info.names.join(', ')}
                   style={{ 
-                    background: info.count >= 3 ? '#fee2e2' : '#ffedd5',
-                    color: info.count >= 3 ? '#991b1b' : '#9a3412',
+                    background: info.count >= 3 ? 'linear-gradient(135deg, #fee2e2, #fecaca)' : 'linear-gradient(135deg, #f1f5f9, #e2e8f0)',
+                    color: info.count >= 3 ? '#991b1b' : '#475569',
                     fontSize: '0.7rem',
-                    padding: '0.2rem 0.4rem',
-                    borderRadius: '4px',
-                    fontWeight: 'bold',
-                    textAlign: 'center'
+                    padding: '0.35rem 0.5rem',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    textAlign: 'center',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
                   }}
                 >
-                  {info.count} Func.
+                  {info.count} {info.count === 1 ? 'Ausente' : 'Ausentes'}
                 </div>
               )}
             </div>
@@ -1044,12 +1341,14 @@ function PermissionCalendar({ permisos }) {
         })}
       </div>
       
-      <div style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem' }}>
+      <div style={{ marginTop: '2rem', padding: '1rem', borderTop: '1px solid #f1f5f9', fontSize: '0.8125rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'center', gap: '2rem' }}>
         <div className="flex items-center gap-2">
-          <span style={{ width: '12px', height: '12px', background: '#ffedd5', borderRadius: '2px', display: 'inline-block' }}></span> 1-2 Permisos
+          <span style={{ width: '10px', height: '10px', background: '#f1f5f9', borderRadius: '4px', border: '1px solid #e2e8f0' }}></span> 
+          <span>Dotación Normal</span>
         </div>
         <div className="flex items-center gap-2">
-          <span style={{ width: '12px', height: '12px', background: '#fee2e2', borderRadius: '2px', display: 'inline-block' }}></span> 3+ Permisos
+          <span style={{ width: '10px', height: '10px', background: '#fee2e2', borderRadius: '4px', border: '1px solid #fecaca' }}></span> 
+          <span>Alerta de Personal (3+)</span>
         </div>
       </div>
     </div>

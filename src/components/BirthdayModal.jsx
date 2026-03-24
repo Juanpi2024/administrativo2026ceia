@@ -1,29 +1,23 @@
 import React, { useState, useMemo } from 'react';
+import { Gift, Calendar, User, Users, X } from 'lucide-react';
 import { alumnosBirthdays, funcionariosBirthdays } from '../data/birthdays';
 
 const BirthdayModal = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState('alumnos'); // 'alumnos' or 'funcionarios'
 
-  // Obtener fecha actual
   const today = new Date();
-  const currentMonth = today.getMonth() + 1; // getMonth() es 0-11
+  const currentMonth = today.getMonth() + 1;
   const currentDay = today.getDate();
 
-  // Función para normalizar y comparar fechas
   const isToday = (fechaNac) => {
     if (!fechaNac) return false;
-    // Manejar ambos formatos: YYYY-MM-DD o DD-MM-YYYY (aunque ya los normalizamos en birthdays.js)
     const parts = fechaNac.split('-');
     if (parts.length !== 3) return false;
-    
-    // Suponiendo formato YYYY-MM-DD tras la normalización
     const month = parseInt(parts[1], 10);
     const day = parseInt(parts[2], 10);
-    
     return month === currentMonth && day === currentDay;
   };
 
-  // Filtrar cumpleañeros de hoy y próximos
   const getProcessedData = (data) => {
     const todayBirthdays = data.filter(person => isToday(person.fechaNac));
     const upcomingBirthdays = data
@@ -34,7 +28,6 @@ const BirthdayModal = ({ isOpen, onClose }) => {
         const monthB = parseInt(b.fechaNac.split('-')[1], 10);
         const dayB = parseInt(b.fechaNac.split('-')[2], 10);
 
-        // Lógica de ordenamiento por cercanía al mes actual
         if (monthA !== monthB) {
           const diffA = (monthA - currentMonth + 12) % 12;
           const diffB = (monthB - currentMonth + 12) % 12;
@@ -57,45 +50,61 @@ const BirthdayModal = ({ isOpen, onClose }) => {
     <div className="birthday-overlay" onClick={onClose}>
       <div className="birthday-content animate-fade-in" onClick={e => e.stopPropagation()}>
         <div className="birthday-header">
-          <div className="flex items-center gap-4">
-            <div className="birthday-icon-circle">🎂</div>
+          <div className="flex items-center gap-5">
+            <div className="birthday-icon-circle">
+              <Gift size={28} strokeWidth={2.5} />
+            </div>
             <div>
-              <h2 className="text-xl">Cumpleaños de la Comunidad</h2>
-              <p className="text-sm text-white opacity-80">Celebrando a nuestra comunidad </p>
+              <h2 className="text-xl font-bold m-0" style={{ fontSize: '1.5rem', letterSpacing: '-0.02em', color: 'white' }}>Social & Onomásticos</h2>
+              <p className="text-sm opacity-90 m-0" style={{ fontSize: '0.9375rem', color: 'white' }}>Fortaleciendo el clima organizacional CEIA 2026</p>
             </div>
           </div>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button className="close-btn" onClick={onClose}>
+            <X size={28} />
+          </button>
         </div>
 
-        <div className="birthday-tabs">
-          <button 
-            className={`tab-btn ${activeTab === 'alumnos' ? 'active' : ''}`}
-            onClick={() => setActiveTab('alumnos')}
-          >
-            Alumnos
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'funcionarios' ? 'active' : ''}`}
-            onClick={() => setActiveTab('funcionarios')}
-          >
-            Funcionarios
-          </button>
+        <div className="birthday-tabs-wrapper">
+          <div className="birthday-tabs">
+            <button 
+              className={`tab-btn ${activeTab === 'alumnos' ? 'active' : ''}`}
+              onClick={() => setActiveTab('alumnos')}
+            >
+              <Users size={18} />
+              Estudiantes
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'funcionarios' ? 'active' : ''}`}
+              onClick={() => setActiveTab('funcionarios')}
+            >
+              <User size={18} />
+              Cuerpo Laboral
+            </button>
+          </div>
         </div>
 
         <div className="birthday-body">
-          {/* Seccion Hoy */}
           {todayBirthdays.length > 0 && (
-            <div className="section-today">
-              <h3 className="section-title">✨ Cumpleaños de hoy ({todayBirthdays.length})</h3>
+            <div className="section-today" style={{ marginBottom: '2.5rem' }}>
+              <div className="flex items-center gap-2 mb-6">
+                <div style={{ width: '8px', height: '24px', background: 'var(--primary)', borderRadius: '4px' }}></div>
+                <h3 className="section-title m-0">Celebraciones de Hoy</h3>
+                <span className="badge-today">{todayBirthdays.length}</span>
+              </div>
               <div className="today-grid">
                 {todayBirthdays.map((person, index) => (
-                  <div key={index} className="today-card card">
-                    <div className="medal">🏆</div>
-                    <div className="person-info">
-                      <p className="person-name">{person.nombre}</p>
-                      <p className="person-sub">
-                        {activeTab === 'alumnos' ? person.curso : person.cargo}
-                      </p>
+                  <div key={index} className="today-card">
+                    <div className="sparkle">✨</div>
+                    <div className="flex items-center gap-4">
+                      <div className="avatar-placeholder">
+                        {person.nombre.charAt(0)}
+                      </div>
+                      <div className="person-info">
+                        <p className="person-name">{person.nombre}</p>
+                        <p className="person-sub">
+                          {activeTab === 'alumnos' ? `Curso: ${person.curso}` : person.cargo}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -103,16 +112,18 @@ const BirthdayModal = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* Proximos */}
-          <div className="section-upcoming mt-8">
-            <h3 className="section-title">📅 Próximos Cumpleaños</h3>
-            <div className="table-container">
+          <div className="section-upcoming">
+            <div className="flex items-center gap-2 mb-6">
+              <div style={{ width: '8px', height: '24px', background: '#94a3b8', borderRadius: '4px' }}></div>
+              <h3 className="section-title m-0">Calendario Próximo</h3>
+            </div>
+            <div className="table-container custom-table">
               <table>
                 <thead>
                   <tr>
-                    <th>Nombre</th>
-                    <th>{activeTab === 'alumnos' ? 'Curso' : 'Cargo'}</th>
-                    <th>Fecha</th>
+                    <th>Identidad</th>
+                    <th>{activeTab === 'alumnos' ? 'Nivel / Curso' : 'Departamento / Cargo'}</th>
+                    <th style={{ textAlign: 'right' }}>Fecha</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -120,12 +131,15 @@ const BirthdayModal = ({ isOpen, onClose }) => {
                     const parts = person.fechaNac.split('-');
                     return (
                       <tr key={index}>
-                        <td>{person.nombre} {person.apellidoPat || ''}</td>
-                        <td>{activeTab === 'alumnos' ? person.curso : person.cargo}</td>
-                        <td>{`${parts[2]}/${parts[1]}`}</td>
+                        <td style={{ fontWeight: 600 }}>{person.nombre} {person.apellidoPat || ''}</td>
+                        <td style={{ color: 'var(--text-muted)' }}>{activeTab === 'alumnos' ? person.curso : person.cargo}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 600, color: 'var(--primary)' }}>{`${parts[2]} de ${['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'][parseInt(parts[1], 10) - 1]}`}</td>
                       </tr>
                     );
                   })}
+                  {upcomingBirthdays.length === 0 && (
+                    <tr><td colSpan="3" className="text-center p-12 text-muted">No se registran onomásticos próximos.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -140,142 +154,209 @@ const BirthdayModal = ({ isOpen, onClose }) => {
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(15, 23, 42, 0.7);
-          backdrop-filter: blur(8px);
+          background: rgba(15, 23, 42, 0.4);
+          -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(12px);
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 1000;
-          padding: 1.5rem;
+          z-index: 10000;
+          padding: 1rem;
         }
 
         .birthday-content {
-          background: var(--surface);
+          background: white;
           width: 100%;
-          max-width: 800px;
-          max-height: 90vh;
-          border-radius: var(--radius);
-          box-shadow: var(--shadow-xl);
+          max-width: 820px;
+          height: auto;
+          max-height: 85vh;
+          border-radius: 32px;
+          box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.2);
           display: flex;
           flex-direction: column;
           overflow: hidden;
-          border: 1px solid var(--border);
+          border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
         .birthday-header {
-          background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+          background: linear-gradient(135deg, hsl(221, 83%, 45%) 0%, hsl(221, 83%, 35%) 100%);
           color: white;
-          padding: 2rem;
+          padding: 2.5rem 3rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
         }
 
         .birthday-icon-circle {
-          width: 50px;
-          height: 50px;
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 50%;
+          width: 64px;
+          height: 64px;
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 20px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 24px;
           border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
         .close-btn {
-          font-size: 2rem;
+          background: transparent;
+          border: none;
           color: white;
-          opacity: 0.7;
-          transition: var(--transition);
+          opacity: 0.6;
+          cursor: pointer;
+          transition: all 0.2s;
+          padding: 0.5rem;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .close-btn:hover {
           opacity: 1;
-          transform: scale(1.1);
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .birthday-tabs-wrapper {
+          background: white;
+          padding: 1rem 3rem;
+          border-bottom: 1px solid #f1f5f9;
         }
 
         .birthday-tabs {
           display: flex;
-          background: var(--background);
-          padding: 0.5rem;
-          gap: 0.5rem;
+          background: #f1f5f9;
+          padding: 0.35rem;
+          border-radius: 16px;
+          gap: 0.25rem;
         }
 
         .tab-btn {
           flex: 1;
           padding: 0.75rem;
-          border-radius: var(--radius-sm);
-          font-weight: 600;
-          color: var(--text-muted);
-          transition: var(--transition);
+          border-radius: 12px;
+          font-weight: 700;
+          color: #64748b;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          font-size: 0.9375rem;
         }
 
         .tab-btn.active {
-          background: var(--surface);
+          background: white;
           color: var(--primary);
-          box-shadow: var(--shadow-sm);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .birthday-body {
-          padding: 2rem;
+          padding: 3rem;
           overflow-y: auto;
-          flex-grow: 1;
+          background: white;
         }
 
         .section-title {
-          font-size: 1.1rem;
-          margin-bottom: 1rem;
+          font-size: 1.25rem;
+          font-weight: 800;
           color: var(--text-main);
-          border-left: 4px solid var(--primary);
-          padding-left: 1rem;
+        }
+
+        .badge-today {
+          background: hsl(20, 100%, 94%);
+          color: hsl(20, 100%, 30%);
+          padding: 0.25rem 0.75rem;
+          border-radius: 99px;
+          font-size: 0.8125rem;
+          font-weight: 800;
+          border: 1px solid hsl(20, 100%, 90%);
         }
 
         .today-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-          gap: 1rem;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 1.5rem;
         }
 
         .today-card {
           position: relative;
-          padding: 1.5rem !important;
-          background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
-          border: 2px solid #fb923c !important;
+          padding: 1.75rem;
+          background: linear-gradient(135deg, hsla(20, 100%, 98%, 0.5) 0%, white 100%);
+          border: 2px solid hsl(20, 100%, 90%);
+          border-radius: 24px;
+          box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.08);
+          transition: transform 0.2s;
+        }
+        
+        .today-card:hover {
+          transform: translateY(-4px);
         }
 
-        .medal {
+        .sparkle {
           position: absolute;
-          top: -10px;
-          right: -10px;
-          font-size: 1.5rem;
-          background: white;
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
+          top: -12px;
+          right: -12px;
+          font-size: 1.75rem;
+        }
+
+        .avatar-placeholder {
+          width: 52px;
+          height: 52px;
+          background: var(--primary);
+          color: white;
+          border-radius: 16px;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: var(--shadow-md);
+          font-size: 1.25rem;
+          font-weight: 900;
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
         }
 
         .person-name {
-          font-weight: 700;
+          font-weight: 800;
           color: var(--text-main);
+          margin: 0;
+          font-size: 1.0625rem;
         }
 
         .person-sub {
-          font-size: 0.85rem;
+          font-size: 0.875rem;
           color: var(--text-muted);
+          margin: 0.25rem 0 0;
+        }
+
+        .custom-table table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .custom-table th {
+          background: #f8fafc;
+          padding: 1rem 1.5rem;
+          color: #64748b;
+          font-weight: 700;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          text-align: left;
+        }
+
+        .custom-table td {
+          padding: 1.25rem 1.5rem;
+          border-bottom: 1px solid #f1f5f9;
+          font-size: 0.9375rem;
         }
 
         @media (max-width: 600px) {
-          .birthday-header {
-            padding: 1.5rem;
-          }
-          .birthday-body {
-            padding: 1rem;
-          }
+          .birthday-header { padding: 2rem; }
+          .birthday-body { padding: 1.5rem; }
+          .birthday-tabs-wrapper { padding: 1rem 1.5rem; }
         }
       `}</style>
     </div>
