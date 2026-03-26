@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { users } from './data/users';
 import { alumnosBirthdays, funcionariosBirthdays } from './data/birthdays';
 import BirthdayModal from './components/BirthdayModal';
+import Selector from './components/Selector';
 import { loadOficios, loadPermisos, saveOficio, savePermiso, checkPermisosDays, deleteOficio, deletePermiso, updateOficio, updatePermiso } from './services/db';
 import { sendPermisoEmail } from './services/email';
 import './index.css';
@@ -20,6 +21,7 @@ export default function App() {
   });
 
   const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
+  const [selector, setSelector] = useState({ isOpen: false, title: '', subtitle: '', items: [], onSelect: () => {} });
 
   // Verificar si hay cumpleaños hoy para la notificación
   const hasBirthdaysToday = React.useMemo(() => {
@@ -56,19 +58,18 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '1rem' }}>
-      <header style={{
-        background: 'rgba(30, 58, 138, 0.95)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+      <header className="header-glass" style={{
         color: 'white',
-        padding: '0.875rem 1.5rem',
+        padding: '1rem 2rem',
         borderRadius: 'var(--radius)',
-        boxShadow: 'var(--shadow-lg)',
-        marginBottom: '2rem',
-        maxWidth: '1200px',
-        margin: '1rem auto 2rem auto',
+        boxShadow: 'var(--shadow-xl)',
+        marginBottom: '2.5rem',
+        maxWidth: '1240px',
+        margin: '1rem auto 2.5rem auto',
         width: '100%',
-        border: '1px solid rgba(255, 255, 255, 0.15)'
+        position: 'sticky',
+        top: '1rem',
+        zIndex: 100
       }}>
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div
@@ -118,6 +119,15 @@ export default function App() {
       </header>
 
       <BirthdayModal isOpen={isBirthdayModalOpen} onClose={() => setIsBirthdayModalOpen(false)} />
+      
+      <Selector 
+        isOpen={selector.isOpen} 
+        onClose={() => setSelector({ ...selector, isOpen: false })}
+        title={selector.title}
+        subtitle={selector.subtitle}
+        items={selector.items}
+        onSelect={selector.onSelect}
+      />
 
       <main className="container p-6 animate-fade-in" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         {view === 'home' && <HomeScreen setView={setView} />}
@@ -316,10 +326,24 @@ function OficioForm({ setView }) {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div>
             <label className="input-label">Emisor Responsable</label>
-            <select className="input-field" required value={formData.emisorId} onChange={e => setFormData({ ...formData, emisorId: e.target.value })}>
-              <option value="">-- Seleccionar Identidad --</option>
-              {oficioEmitters.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-            </select>
+            <div 
+              className="input-field flex items-center justify-between cursor-pointer" 
+              onClick={() => setSelector({
+                isOpen: true,
+                title: 'Seleccionar Emisor',
+                subtitle: 'Elija su identidad autorizada para este documento',
+                items: oficioEmitters,
+                onSelect: (item) => setFormData({ ...formData, emisorId: item.id.toString() })
+              })}
+              style={{ background: 'var(--background)' }}
+            >
+              <span style={{ color: formData.emisorId ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                {formData.emisorId 
+                  ? sortedUsers.find(u => u.id === parseInt(formData.emisorId))?.name 
+                  : '-- Presione para seleccionar --'}
+              </span>
+              <Search size={18} />
+            </div>
           </div>
           <div>
             <label className="input-label">Institución o Persona Destinataria</label>
@@ -487,10 +511,24 @@ function PermisoForm({ setView }) {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div>
             <label className="input-label">Nombre del Funcionario</label>
-            <select className="input-field" required value={formData.funcionarioId} onChange={e => setFormData({ ...formData, funcionarioId: e.target.value })}>
-              <option value="">-- Seleccionar de la lista --</option>
-              {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-            </select>
+            <div 
+              className="input-field flex items-center justify-between cursor-pointer" 
+              onClick={() => setSelector({
+                isOpen: true,
+                title: 'Seleccionar Funcionario',
+                subtitle: 'Busque el nombre del funcionario que solicita el permiso',
+                items: sortedUsers,
+                onSelect: (item) => setFormData({ ...formData, funcionarioId: item.id.toString() })
+              })}
+              style={{ background: 'var(--background)' }}
+            >
+              <span style={{ color: formData.funcionarioId ? 'var(--text-main)' : 'var(--text-muted)' }}>
+                {formData.funcionarioId 
+                  ? sortedUsers.find(u => u.id === parseInt(formData.funcionarioId))?.name 
+                  : '-- Buscar por nombre --'}
+              </span>
+              <Search size={18} />
+            </div>
           </div>
 
           {loadingDays && (
@@ -1031,14 +1069,22 @@ function Dashboard({ setView }) {
             <form onSubmit={handleEditOficioSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
                 <label className="input-label">Emisor Responsable</label>
-                <select className="input-field" required value={editingOficio.emisorId || ''} onChange={(e) => {
-                  const selectedId = parseInt(e.target.value);
-                  const emisor = sortedUsers.find(u => u.id === selectedId);
-                  setEditingOficio({ ...editingOficio, emisorId: selectedId, emisorNombre: emisor ? emisor.name : '' });
-                }}>
-                  <option value="">-- Seleccionar Emisor --</option>
-                  {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-                </select>
+                <div 
+                  className="input-field flex items-center justify-between cursor-pointer" 
+                  onClick={() => setSelector({
+                    isOpen: true,
+                    title: 'Cambiar Emisor',
+                    subtitle: 'Seleccione el nuevo responsable para este oficio',
+                    items: oficioEmitters,
+                    onSelect: (item) => setEditingOficio({ ...editingOficio, emisorId: item.id, emisorNombre: item.name })
+                  })}
+                  style={{ background: 'var(--background)' }}
+                >
+                  <span style={{ color: 'var(--text-main)' }}>
+                    {editingOficio.emisorNombre || '-- Seleccionar --'}
+                  </span>
+                  <Search size={18} />
+                </div>
               </div>
               <div>
                 <label className="input-label">Destinatario</label>
@@ -1073,14 +1119,22 @@ function Dashboard({ setView }) {
             <form onSubmit={handleEditPermisoSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
                 <label className="input-label">Funcionario</label>
-                <select className="input-field" required value={editingPermiso.funcionarioId || ''} onChange={(e) => {
-                  const selectedId = parseInt(e.target.value);
-                  const func = sortedUsers.find(u => u.id === selectedId);
-                  setEditingPermiso({ ...editingPermiso, funcionarioId: selectedId, funcionarioNombre: func ? func.name : '', funcionarioEmail: func ? func.email : '' });
-                }}>
-                  <option value="">-- Seleccionar Funcionario --</option>
-                  {sortedUsers.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-                </select>
+                <div 
+                  className="input-field flex items-center justify-between cursor-pointer" 
+                  onClick={() => setSelector({
+                    isOpen: true,
+                    title: 'Cambiar Funcionario',
+                    subtitle: 'Modifique el titular de este permiso administrativo',
+                    items: sortedUsers,
+                    onSelect: (item) => setEditingPermiso({ ...editingPermiso, funcionarioId: item.id, funcionarioNombre: item.name, funcionarioEmail: item.email })
+                  })}
+                  style={{ background: 'var(--background)' }}
+                >
+                  <span style={{ color: 'var(--text-main)' }}>
+                    {editingPermiso.funcionarioNombre || '-- Seleccionar --'}
+                  </span>
+                  <Search size={18} />
+                </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
