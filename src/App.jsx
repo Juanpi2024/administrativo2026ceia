@@ -131,9 +131,9 @@ export default function App() {
 
       <main className="container p-6 animate-fade-in" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         {view === 'home' && <HomeScreen setView={setView} />}
-        {view === 'oficio' && <OficioForm setView={setView} />}
-        {view === 'permiso' && <PermisoForm setView={setView} />}
-        {view === 'dashboard' && <Dashboard setView={setView} />}
+        {view === 'oficio' && <OficioForm setView={setView} setSelector={setSelector} />}
+        {view === 'permiso' && <PermisoForm setView={setView} setSelector={setSelector} />}
+        {view === 'dashboard' && <Dashboard setView={setView} setSelector={setSelector} />}
       </main>
     </div>
   );
@@ -227,7 +227,7 @@ function HomeScreen({ setView }) {
   );
 }
 
-function OficioForm({ setView }) {
+function OficioForm({ setView, setSelector }) {
   const [formData, setFormData] = useState({
     emisorId: localStorage.getItem('lastOficioUser') || '',
     destinatario: '',
@@ -375,7 +375,7 @@ function OficioForm({ setView }) {
   );
 }
 
-function PermisoForm({ setView }) {
+function PermisoForm({ setView, setSelector }) {
   const [formData, setFormData] = useState({
     funcionarioId: localStorage.getItem('lastPermisoUser') || '',
     tipoPermiso: 'Día Administrativo',
@@ -617,7 +617,7 @@ function PermisoForm({ setView }) {
   );
 }
 
-function Dashboard({ setView }) {
+function Dashboard({ setView, setSelector }) {
   const [tab, setTab] = useState('oficios');
   const [oficios, setOficios] = useState([]);
   const [permisos, setPermisos] = useState([]);
@@ -1059,8 +1059,8 @@ function Dashboard({ setView }) {
 
       {/* MODAL DE EDICIÓN OFICIO */}
       {editingOficio && (
-        <div onClick={() => setEditingOficio(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div onClick={(e) => e.stopPropagation()} className="card" style={{ width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: 'var(--shadow-xl)', border: '1px solid rgba(255,255,255,0.8)' }}>
+        <div onClick={() => setEditingOficio(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', background: 'white' }}>
             <div className="flex justify-between items-center mb-8">
               <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>Editar Oficio #{editingOficio.id}</h3>
               <button onClick={() => setEditingOficio(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
@@ -1109,8 +1109,8 @@ function Dashboard({ setView }) {
 
       {/* MODAL DE EDICIÓN PERMISO */}
       {editingPermiso && (
-        <div onClick={() => setEditingPermiso(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div onClick={(e) => e.stopPropagation()} className="card" style={{ width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: 'var(--shadow-xl)', border: '1px solid rgba(255,255,255,0.8)' }}>
+        <div onClick={() => setEditingPermiso(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', background: 'white' }}>
             <div className="flex justify-between items-center mb-8">
               <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>Editar Permiso #{editingPermiso.id}</h3>
               <button onClick={() => setEditingPermiso(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
@@ -1192,8 +1192,8 @@ function Dashboard({ setView }) {
 
       {/* MODAL DE HISTORIAL POR FUNCIONARIO */}
       {historyFuncionario && (
-        <div onClick={() => setHistoryFuncionario(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '1rem' }}>
-          <div onClick={(e) => e.stopPropagation()} className="card" style={{ width: '100%', maxWidth: '720px', padding: '2.5rem', boxShadow: 'var(--shadow-xl)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto' }}>
+        <div onClick={() => setHistoryFuncionario(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '720px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
             <div className="flex justify-between items-center mb-8">
               <div className="flex items-center gap-4">
                 <div style={{ background: 'rgba(37, 99, 235, 0.1)', color: 'var(--primary)', padding: '0.625rem', borderRadius: '14px' }}>
