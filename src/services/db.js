@@ -20,11 +20,11 @@ export async function getNextCorrelative(type) {
     if (isMock) {
         const val = parseInt(localStorage.getItem(`correlative_${type}`) || '0') + 1;
         localStorage.setItem(`correlative_${type}`, val.toString());
-        const prefix = type === 'oficio' ? 'OF' : 'PA';
+        const prefix = type === 'oficio' ? 'OF' : (type === 'licencia' ? 'LM' : 'PA');
         return `${prefix}-2026-${val.toString().padStart(3, '0')}`;
     }
 
-    const prefix = type === 'oficio' ? 'OF' : 'PA';
+    const prefix = type === 'oficio' ? 'OF' : (type === 'licencia' ? 'LM' : 'PA');
     let correlativeStr = '';
     const ref = doc(db, 'correlatives', type);
 
@@ -136,6 +136,43 @@ export async function loadPermisos() {
     }
 }
 
+export async function saveLicencia(licenciaData) {
+    licenciaData.diasUsados = calculateDays(licenciaData.fechaInicio, licenciaData.fechaFin, licenciaData.jornada);
+
+    if (isMock) {
+        licenciaData.id = await getNextCorrelative('licencia');
+        licenciaData.createdAt = new Date().toISOString();
+        const existing = JSON.parse(localStorage.getItem('licencias') || '[]');
+        localStorage.setItem('licencias', JSON.stringify([licenciaData, ...existing]));
+        return licenciaData;
+    }
+
+    licenciaData.id = await getNextCorrelative('licencia');
+    licenciaData.createdAt = new Date().toISOString();
+    await setDoc(doc(db, 'licencias', licenciaData.id), licenciaData);
+    return licenciaData;
+}
+
+export async function loadLicencias() {
+    const local = JSON.parse(localStorage.getItem('licencias') || '[]');
+    if (isMock) return local;
+
+    try {
+        const q = query(collection(db, 'licencias'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        const cloud = snap.docs.map(d => d.data());
+
+        const combined = [...cloud];
+        local.forEach(lp => {
+            if (!combined.some(cp => cp.id === lp.id)) combined.push(lp);
+        });
+        return combined.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } catch (e) {
+        console.warn("Firestore inaccesible, cargando datos locales:", e);
+        return local;
+    }
+}
+
 // ==========================================
 // NUEVAS FUNCIONES PARA EDITAR Y ELIMINAR
 // ==========================================
@@ -206,5 +243,41 @@ export async function updatePermiso(id, newData) {
         return true;
     }
     await updateDoc(doc(db, 'permisos', id), newData);
+    return true;
+}
+
+export async function deleteLicencia(id) {
+    // 1. Limpieza Local Prioritaria
+    const existing = JSON.parse(localStorage.getItem('licencias') || '[]');
+    if (existing.some(p => p.id === id)) {
+        localStorage.setItem('licencias', JSON.stringify(existing.filter(p => p.id !== id)));
+    }
+
+    // 2. Limpieza en la Nube
+    if (!isMock) {
+        try {
+            await deleteDoc(doc(db, 'licencias', id));
+        } catch (error) {
+            console.error("Error al borrar licencia en Firestore:", error);
+        }
+    }
+    return true;
+}
+
+export async function updateLicencia(id, newData) {
+    if (newData.fechaInicio && newData.fechaFin) {
+        newData.diasUsados = calculateDays(newData.fechaInicio, newData.fechaFin, newData.jornada || 'Completa');
+    }
+
+    if (isMock) {
+        const existing = JSON.parse(localStorage.getItem('licencias') || '[]');
+        const index = existing.findIndex(p => p.id === id);
+        if (index !== -1) {
+            existing[index] = { ...existing[index], ...newData };
+            localStorage.setItem('licencias', JSON.stringify(existing));
+        }
+        return true;
+    }
+    await updateDoc(doc(db, 'licencias', id), newData);
     return true;
 }
