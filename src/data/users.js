@@ -234,6 +234,12 @@ export const users = [
         "name": "ANDRADES INOSTROZA MARÍA JOSÉ",
         "email": "maria.andrades@slepla.gob.cl",
         "role": "lector"
+    },
+    {
+        "id": 40,
+        "name": "KATHERINE VANESSA RODRÍGUEZ RÍOS",
+        "email": "katherine.rodriguez@slepla.gob.cl",
+        "role": "lector"
     }
 ];
 
