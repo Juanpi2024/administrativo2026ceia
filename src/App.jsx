@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2, MessageCircle, BarChart2, PieChart as PieChartIcon, Cake, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { users } from './data/users';
@@ -423,7 +424,7 @@ function PermisoForm({ setView, setSelector }) {
   useEffect(() => {
     if (formData.funcionarioId) {
       setLoadingDays(true);
-      checkPermisosDays(parseInt(formData.funcionarioId)).then(info => {
+      checkPermisosDays(formData.funcionarioId).then(info => {
         setDaysInfo(info);
         setLoadingDays(false);
       });
@@ -554,7 +555,7 @@ function PermisoForm({ setView, setSelector }) {
             >
               <span style={{ color: formData.funcionarioId ? 'var(--text-main)' : 'var(--text-muted)' }}>
                 {formData.funcionarioId 
-                  ? sortedUsers.find(u => u.id === parseInt(formData.funcionarioId))?.name 
+                  ? sortedUsers.find(u => String(u.id) === String(formData.funcionarioId))?.name 
                   : '-- Buscar por nombre --'}
               </span>
               <Search size={18} />
@@ -1427,10 +1428,10 @@ function Dashboard({ setView, setSelector }) {
       ) : null}
 
       {/* MODAL DE EDICIÓN OFICIO */}
-      {editingOficio && (
-        <div onClick={() => setEditingOficio(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
+      {editingOficio && createPortal(
+        <div onClick={() => setEditingOficio(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999999, padding: '1rem' }}>
 
-          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 1000000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
             <div className="flex justify-between items-center mb-8">
               <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>Editar Oficio #{editingOficio.id}</h3>
               <button onClick={() => setEditingOficio(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
@@ -1474,13 +1475,14 @@ function Dashboard({ setView, setSelector }) {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL DE EDICIÓN PERMISO */}
-      {editingPermiso && (
-        <div onClick={() => setEditingPermiso(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
-          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
+      {editingPermiso && createPortal(
+        <div onClick={() => setEditingPermiso(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999999, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 1000000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
             <div className="flex justify-between items-center mb-8">
               <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>Editar Permiso #{editingPermiso.id}</h3>
               <button onClick={() => setEditingPermiso(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
@@ -1551,19 +1553,37 @@ function Dashboard({ setView, setSelector }) {
                 <label className="input-label">Motivo Justificado</label>
                 <textarea className="input-field" rows="2" required value={editingPermiso.motivo} onChange={(e) => setEditingPermiso({ ...editingPermiso, motivo: e.target.value })} />
               </div>
+              {editingPermiso.tipoPermiso === 'Día Administrativo' && (
+                <div style={{ padding: '0.75rem', background: '#eff6ff', borderRadius: '12px', border: '1px solid #dbeafe', marginTop: '0.25rem' }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#1e40af', fontWeight: 600 }}>
+                    Balance Proyectado para este Funcionario (2026): {
+                      permisos
+                        .filter(p => 
+                          String(p.funcionarioId) === String(editingPermiso.funcionarioId) && 
+                          p.tipoPermiso === 'Día Administrativo' &&
+                          new Date(p.fechaInicio).getFullYear() === 2026 &&
+                          p.id !== editingPermiso.id // Excluimos la versión actual que estamos editando
+                        )
+                        .reduce((sum, curr) => sum + curr.diasUsados, 0) + 
+                      (calculateDays(editingPermiso.fechaInicio, editingPermiso.fechaFin, editingPermiso.jornada || 'Completa'))
+                    } / 6 días
+                  </p>
+                </div>
+              )}
               <div className="flex gap-4 mt-6" style={{ justifyContent: 'flex-end' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setEditingPermiso(null)}>Descartar</button>
                 <button type="submit" className="btn btn-primary" style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>Guardar Cambios</button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL DE EDICIÓN LICENCIA */}
-      {editingLicencia && (
-        <div onClick={() => setEditingLicencia(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
-          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
+      {editingLicencia && createPortal(
+        <div onClick={() => setEditingLicencia(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999999, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 1000000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
             <div className="flex justify-between items-center mb-8">
               <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ef4444', margin: 0 }}>Editar Licencia #{editingLicencia.id}</h3>
               <button onClick={() => setEditingLicencia(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
@@ -1634,15 +1654,16 @@ function Dashboard({ setView, setSelector }) {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL DE HISTORIAL POR FUNCIONARIO */}
-            {historyFuncionario && (
-        <div onClick={() => setHistoryFuncionario(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
+            {historyFuncionario && createPortal(
+        <div onClick={() => setHistoryFuncionario(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999999, padding: '1rem' }}>
           <div onClick={(e) => e.stopPropagation()} className="card" style={{ 
             position: 'relative', 
-            zIndex: 100000, 
+            zIndex: 1000000, 
             width: '100%', 
             maxWidth: '820px', 
             padding: 0, 
@@ -1685,7 +1706,7 @@ function Dashboard({ setView, setSelector }) {
                   </thead>
                   <tbody>
                     {(historyFuncionario.type === 'licencia' ? licencias : permisos)
-                      .filter(p => p.funcionarioId === historyFuncionario.id)
+                      .filter(p => String(p.funcionarioId) === String(historyFuncionario.id))
                       .map(p => (
                       <tr key={`history-${p.id}`} style={{ borderBottom: '1px solid var(--border)' }}>
                         <td style={{ padding: '1rem', fontWeight: 700, color: historyFuncionario.type === 'licencia' ? '#ef4444' : 'var(--primary)' }}>{p.id}</td>
@@ -1703,7 +1724,7 @@ function Dashboard({ setView, setSelector }) {
                       </tr>
                     ))}
                     {(historyFuncionario.type === 'licencia' ? licencias : permisos)
-                      .filter(p => p.funcionarioId === historyFuncionario.id).length === 0 && (
+                      .filter(p => String(p.funcionarioId) === String(historyFuncionario.id)).length === 0 && (
                       <tr><td colSpan="5" className="text-center p-12 text-muted">No se registran ocurrencias para este funcionario.</td></tr>
                     )}
                   </tbody>
@@ -1725,14 +1746,31 @@ function Dashboard({ setView, setSelector }) {
                 <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>Cómputo Total Anual:</span>
                 <div style={{ textAlign: 'right' }}>
                   <span style={{ fontSize: '1.5rem', fontWeight: 900, color: historyFuncionario.type === 'licencia' ? '#ef4444' : 'var(--primary)' }}>
-                    {(historyFuncionario.type === 'licencia' ? licencias : permisos).filter(p => p.funcionarioId === historyFuncionario.id).reduce((sum, current) => sum + current.diasUsados, 0)} días
+                    {(historyFuncionario.type === 'licencia' ? licencias : permisos)
+                      .filter(p => String(p.funcionarioId) === String(historyFuncionario.id))
+                      .reduce((sum, current) => sum + current.diasUsados, 0)} días
                   </span>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>Registrados en el ciclo actual</p>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>Historial Total Acumulado</p>
+                  
+                  {historyFuncionario.type === 'permiso' && (
+                    <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px dashed rgba(0,0,0,0.1)' }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#2563eb' }}>
+                        Días Administrativos (2026): {
+                          permisos.filter(p => 
+                            String(p.funcionarioId) === String(historyFuncionario.id) && 
+                            p.tipoPermiso === 'Día Administrativo' &&
+                            new Date(p.fechaInicio).getFullYear() === 2026
+                          ).reduce((sum, curr) => sum + curr.diasUsados, 0)
+                        } / 6
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

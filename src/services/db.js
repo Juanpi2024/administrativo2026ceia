@@ -57,10 +57,15 @@ export async function saveOficio(oficioData) {
 }
 
 export async function checkPermisosDays(funcionarioId) {
+    const year = 2026;
     if (isMock) {
         const existing = JSON.parse(localStorage.getItem('permisos') || '[]');
-        // Solo sumamos los que son de tipo "Día Administrativo"
-        const adminPermisos = existing.filter(p => p.funcionarioId === funcionarioId && p.tipoPermiso === 'Día Administrativo');
+        // Solo sumamos los que son de tipo "Día Administrativo" del año actual
+        const adminPermisos = existing.filter(p => 
+            String(p.funcionarioId) === String(funcionarioId) && 
+            p.tipoPermiso === 'Día Administrativo' &&
+            new Date(p.fechaInicio).getFullYear() === year
+        );
         let taken = 0;
         adminPermisos.forEach(p => taken += calculateDays(p.fechaInicio, p.fechaFin, p.jornada));
         return { taken, left: 6 - taken };
@@ -73,13 +78,20 @@ export async function checkPermisosDays(funcionarioId) {
     );
     const snap = await getDocs(q);
     let taken = 0;
-    snap.forEach(d => taken += calculateDays(d.data().fechaInicio, d.data().fechaFin, d.data().jornada));
+    // Filter by year in memory since Firestore 'where' on sub-fields or multiple ranges can be tricky without indexes
+    snap.forEach(d => {
+        const data = d.data();
+        if (new Date(data.fechaInicio).getFullYear() === year) {
+            taken += calculateDays(data.fechaInicio, data.fechaFin, data.jornada);
+        }
+    });
     return { taken, left: 6 - taken };
 }
 
 export async function savePermiso(permisoData) {
     permisoData.diasUsados = calculateDays(permisoData.fechaInicio, permisoData.fechaFin, permisoData.jornada);
-
+    // Ensure ID is stored as string for consistency if needed, but here we keep it as provided (usually number from users.js)
+    
     if (isMock) {
         permisoData.id = await getNextCorrelative('permiso');
         permisoData.createdAt = new Date().toISOString();
@@ -103,8 +115,6 @@ export async function loadOficios() {
         const snap = await getDocs(q);
         const cloud = snap.docs.map(d => d.data());
 
-        // Unimos ambos para asegurar que lo que guardaste local aparezca
-        // Filtrando duplicados por ID
         const combined = [...cloud];
         local.forEach(lo => {
             if (!combined.some(co => co.id === lo.id)) combined.push(lo);
@@ -178,32 +188,27 @@ export async function loadLicencias() {
 // ==========================================
 
 export async function deleteOficio(id) {
-    // 1. Limpieza Local Prioritaria (para eliminar datos de prueba "huerfanos")
     const existing = JSON.parse(localStorage.getItem('oficios') || '[]');
     if (existing.some(o => o.id === id)) {
         localStorage.setItem('oficios', JSON.stringify(existing.filter(o => o.id !== id)));
     }
 
-    // 2. Limpieza en la Nube (si aplica)
     if (!isMock) {
         try {
             await deleteDoc(doc(db, 'oficios', id));
         } catch (error) {
             console.error("Error al borrar oficio en Firestore:", error);
-            // No bloqueamos el flujo si falla la nube, ya que el local ya se limpió
         }
     }
     return true;
 }
 
 export async function deletePermiso(id) {
-    // 1. Limpieza Local Prioritaria
     const existing = JSON.parse(localStorage.getItem('permisos') || '[]');
     if (existing.some(p => p.id === id)) {
         localStorage.setItem('permisos', JSON.stringify(existing.filter(p => p.id !== id)));
     }
 
-    // 2. Limpieza en la Nube
     if (!isMock) {
         try {
             await deleteDoc(doc(db, 'permisos', id));

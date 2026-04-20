@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Gift, Calendar, User, Users, X } from 'lucide-react';
 import { alumnosBirthdays, funcionariosBirthdays } from '../data/birthdays';
 
@@ -46,7 +47,7 @@ const BirthdayModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="birthday-overlay" onClick={onClose}>
       <div className="birthday-content animate-fade-in" onClick={e => e.stopPropagation()}>
         <div className="birthday-header">
@@ -160,7 +161,7 @@ const BirthdayModal = ({ isOpen, onClose }) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 10000;
+          z-index: 999999;
           padding: 1rem;
         }
 
@@ -359,7 +360,8 @@ const BirthdayModal = ({ isOpen, onClose }) => {
           .birthday-tabs-wrapper { padding: 1rem 1.5rem; }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 };
 

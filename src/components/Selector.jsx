@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Search, X, User } from 'lucide-react';
 
 export default function Selector({ isOpen, onClose, title, subtitle, items, onSelect, placeholder = "Buscar..." }) {
@@ -10,7 +11,7 @@ export default function Selector({ isOpen, onClose, title, subtitle, items, onSe
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  return (
+  return createPortal(
     <div 
       className="animate-fade-in" 
       style={{ 
@@ -25,7 +26,7 @@ export default function Selector({ isOpen, onClose, title, subtitle, items, onSe
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center', 
-        zIndex: 10000, 
+        zIndex: 999999, 
         padding: '1rem' 
       }}
       onClick={onClose}
@@ -101,6 +102,7 @@ export default function Selector({ isOpen, onClose, title, subtitle, items, onSe
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
