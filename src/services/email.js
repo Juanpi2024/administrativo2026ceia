@@ -1,6 +1,15 @@
 import emailjs from '@emailjs/browser';
 
-const isMock = !import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const isMock = !import.meta.env.VITE_EMAILJS_SERVICE_ID || import.meta.env.VITE_EMAILJS_SERVICE_ID === '';
+
+// Diagnóstico inicial
+if (isMock) {
+    console.warn("⚠️ DIAGNÓSTICO EMAILJS: No se detectó VITE_EMAILJS_SERVICE_ID. El sistema operará en MODO SIMULACIÓN.");
+} else {
+    console.log("✅ DIAGNÓSTICO EMAILJS: Variables detectadas correctamente.");
+    // Inicialización explícita recomendada para v4
+    emailjs.init(import.meta.env.VITE_EMAILJS_PUBLIC_KEY);
+}
 
 /**
  * Envia un correo genérico para trámites administrativos
@@ -9,7 +18,7 @@ export async function sendAdminEmail(type, userName, userEmail, data) {
     if (isMock) {
         console.log(`[SIMULACIÓN CORREO] Tipo: ${type}. Para: ${userEmail}.`);
         console.log(`[SIMULACIÓN CORREO] Contenido:`, data);
-        return;
+        return { success: true, mock: true };
     }
 
     const templateParams = {
@@ -29,15 +38,17 @@ export async function sendAdminEmail(type, userName, userEmail, data) {
     };
 
     try {
-        await emailjs.send(
+        const result = await emailjs.send(
             import.meta.env.VITE_EMAILJS_SERVICE_ID,
             import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
             templateParams,
             import.meta.env.VITE_EMAILJS_PUBLIC_KEY
         );
         console.log(`Correo de ${type} enviado exitosamente a:`, userEmail);
+        return { success: true, result };
     } catch (error) {
         console.error(`Error al enviar el correo de ${type}:`, error);
+        return { success: false, error };
     }
 }
 

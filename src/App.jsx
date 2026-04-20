@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2, MessageCircle, BarChart2, PieChart as PieChartIcon, Cake, Activity } from 'lucide-react';
+import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2, MessageCircle, Mail, BarChart2, PieChart as PieChartIcon, Cake, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { users } from './data/users';
 import { alumnosBirthdays, funcionariosBirthdays } from './data/birthdays';
@@ -405,6 +405,22 @@ function OficioForm({ setView, setSelector }) {
     </div>
   );
 }
+
+const handleOficioSubmission = async (formData, users, setLoading, setSuccessId) => {
+  setLoading(true);
+  try {
+    const saved = await saveOficio(formData);
+    const emisor = users.find(u => String(u.id) === String(formData.emisorId));
+    if (emisor && emisor.email) {
+      await sendAdminEmail('Registro de Oficio', emisor.name, emisor.email, saved);
+    }
+    setSuccessId(saved.id);
+  } catch (error) {
+    alert("Error al guardar: " + error.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
 function PermisoForm({ setView, setSelector }) {
   const [formData, setFormData] = useState({
@@ -1285,6 +1301,37 @@ function Dashboard({ setView, setSelector }) {
                   <td style={{ maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.materia}</td>
                   <td style={{ textAlign: 'right' }}>
                     <div className="flex justify-end gap-2">
+                      <button 
+                        className="btn btn-outline" 
+                        style={{ padding: '0.4rem', borderRadius: '10px', color: '#10b981' }} 
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          console.log("CLIC: Notificar Oficio", o.id);
+                          const emisor = users.find(u => String(u.id) === String(o.emisorId));
+                          if (!emisor) {
+                            console.error("Error: Emisor no encontrado para ID", o.emisorId);
+                            return alert('Error: Emisor no encontrado.');
+                          }
+                          console.log("Preparando confirmación para:", emisor.email);
+                          const confirmed = confirm(`¿Enviar copia de este oficio a ${emisor.email}?`);
+                          console.log("Resultado confirmación:", confirmed);
+                          if (confirmed) {
+                            try {
+                              console.log("Iniciando envío de correo...");
+                              const res = await sendAdminEmail('Registro de Oficio', emisor.name, emisor.email, o);
+                              console.log("Resultado envío:", res);
+                              if (res.success) alert(res.mock ? 'MODO SIMULACIÓN: Los datos se mostraron en la consola (F12).' : 'Correo enviado exitosamente.');
+                              else alert('Error al enviar: ' + (res.error?.message || 'Error desconocido'));
+                            } catch (err) {
+                              console.error("Error fatal en catch:", err);
+                              alert('Error al procesar: ' + err.message);
+                            }
+                          }
+                        }}
+                        title="Notificar por Correo"
+                      >
+                        <Mail size={16} />
+                      </button>
                       <button className="btn btn-outline" style={{ padding: '0.4rem', borderRadius: '10px' }} onClick={() => setEditingOficio(o)} title="Editar Oficio">
                         <Edit2 size={16} />
                       </button>
@@ -1347,6 +1394,39 @@ function Dashboard({ setView, setSelector }) {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div className="flex justify-end gap-2">
+                        <button 
+                          className="btn btn-outline" 
+                          style={{ padding: '0.4rem', borderRadius: '10px', color: '#10b981' }} 
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            console.log("CLIC: Notificar Permiso", p.id);
+                            const func = users.find(u => String(u.id) === String(p.funcionarioId));
+                            if (!func) {
+                                console.error("Error: Funcionario no encontrado para ID", p.funcionarioId);
+                                return alert('Error: Funcionario no encontrado.');
+                            }
+                            console.log("Preparando confirmación para:", func.email);
+                            const confirmed = confirm(`¿Enviar notificación de este permiso a ${func.email}?`);
+                            console.log("Resultado confirmación:", confirmed);
+                            if (confirmed) {
+                              try {
+                                console.log("Obteniendo días de permiso...");
+                                const { taken, left } = await checkPermisosDays(func.id);
+                                console.log(`Días: Usados=${taken}, Libres=${left}. Enviando...`);
+                                const res = await sendPermisoEmail(func.email, func.name, taken, left, p);
+                                console.log("Resultado envío:", res);
+                                if (res.success) alert(res.mock ? 'MODO SIMULACIÓN: Los datos se mostraron en la consola (F12).' : 'Correo enviado exitosamente.');
+                                else alert('Error al enviar: ' + (res.error?.message || 'Error desconocido'));
+                              } catch (err) {
+                                console.error("Error fatal en catch:", err);
+                                alert('Error al procesar: ' + err.message);
+                              }
+                            }
+                          }}
+                          title="Notificar por Correo"
+                        >
+                          <Mail size={16} />
+                        </button>
                         <button className="btn btn-outline" style={{ padding: '0.4rem', borderRadius: '10px' }} onClick={() => setEditingPermiso(p)} title="Modificar Permiso">
                           <Edit2 size={16} />
                         </button>
@@ -1410,6 +1490,34 @@ function Dashboard({ setView, setSelector }) {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div className="flex justify-end gap-2">
+                        <button 
+                          className="btn btn-outline" 
+                          style={{ padding: '0.4rem', borderRadius: '10px', color: '#10b981' }} 
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            console.log("CLIC: Notificar Licencia", l.id || l.licenciaId);
+                            const func = users.find(u => String(u.id) === String(l.funcionarioId));
+                            if (!func) return alert('Funcionario no encontrado.');
+                            console.log("Preparando confirmación para:", func.email);
+                            const confirmed = confirm(`¿Enviar comprobante de esta licencia a ${func.email}?`);
+                            console.log("Resultado confirmación:", confirmed);
+                            if (confirmed) {
+                              try {
+                                console.log("Iniciando envío de correo de licencia...");
+                                const res = await sendAdminEmail('Registro de Licencia Médica', func.name, func.email, l);
+                                console.log("Resultado envío:", res);
+                                if (res.success) alert(res.mock ? 'MODO SIMULACIÓN: Los datos se mostraron en la consola (F12).' : 'Correo enviado exitosamente.');
+                                else alert('Error al enviar: ' + (res.error?.message || 'Error desconocido'));
+                              } catch (err) {
+                                console.error("Error fatal en catch licencia:", err);
+                                alert('Error al procesar: ' + err.message);
+                              }
+                            }
+                          }}
+                          title="Enviar Comprobante"
+                        >
+                          <Mail size={16} />
+                        </button>
                         <button className="btn btn-outline" style={{ padding: '0.4rem', borderRadius: '10px' }} onClick={() => setEditingLicencia(l)} title="Modificar Licencia">
                           <Edit2 size={16} />
                         </button>
@@ -1570,7 +1678,7 @@ function Dashboard({ setView, setSelector }) {
                   </p>
                 </div>
               )}
-              <div className="flex gap-4 mt-6" style={{ justifyContent: 'flex-end' }}>
+               <div className="flex gap-4 mt-6" style={{ justifyContent: 'flex-end' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setEditingPermiso(null)}>Descartar</button>
                 <button type="submit" className="btn btn-primary" style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>Guardar Cambios</button>
               </div>
@@ -1648,7 +1756,7 @@ function Dashboard({ setView, setSelector }) {
                   <input type="date" className="input-field" required value={editingLicencia.fechaFin} disabled={editingLicencia.jornada?.includes('Medio Día')} onChange={(e) => setEditingLicencia({ ...editingLicencia, fechaFin: e.target.value })} />
                 </div>
               </div>
-              <div className="flex gap-4 mt-6" style={{ justifyContent: 'flex-end' }}>
+               <div className="flex gap-4 mt-6" style={{ justifyContent: 'flex-end' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setEditingLicencia(null)}>Descartar</button>
                 <button type="submit" className="btn btn-primary" style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem', background: '#ef4444', borderColor: '#ef4444' }}>Guardar Cambios</button>
               </div>
