@@ -154,7 +154,7 @@ const BirthdayModal = ({ isOpen, onClose }) => {
           left: 0;
           right: 0;
           bottom: 0;
-          background: rgba(15, 23, 42, 0.4);
+          background: rgba(15, 23, 42, 0.65);
           -webkit-backdrop-filter: blur(12px);
           backdrop-filter: blur(12px);
           display: flex;

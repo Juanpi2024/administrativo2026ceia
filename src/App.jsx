@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { FileText, Calendar, LayoutDashboard, ArrowLeft, Search, Plus, Save, Download, Eye, AlertCircle, Edit2, Trash2, MessageCircle, BarChart2, PieChart as PieChartIcon, Cake, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { users } from './data/users';
@@ -6,7 +6,7 @@ import { alumnosBirthdays, funcionariosBirthdays } from './data/birthdays';
 import BirthdayModal from './components/BirthdayModal';
 import Selector from './components/Selector';
 import { loadOficios, loadPermisos, saveOficio, savePermiso, checkPermisosDays, deleteOficio, deletePermiso, updateOficio, updatePermiso, saveLicencia, loadLicencias, deleteLicencia, updateLicencia } from './services/db';
-import { sendPermisoEmail } from './services/email';
+import { sendPermisoEmail, sendAdminEmail } from './services/email';
 import './index.css';
 
 const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name, 'es'));
@@ -286,6 +286,7 @@ function OficioForm({ setView, setSelector }) {
       };
 
       const saved = await saveOficio(oficioData);
+      await sendAdminEmail('Registro de Oficio', emisor.name, emisor.email, saved);
       setSuccessId(saved.id);
     } catch (error) {
       alert("Error al guardar: " + error.message);
@@ -680,6 +681,7 @@ function LicenciaForm({ setView, setSelector }) {
       };
 
       const saved = await saveLicencia(licenciaData);
+      await sendAdminEmail('Registro de Licencia Médica', func.name, func.email, saved);
       setSuccessId(saved.id);
     } catch (error) {
       alert("Error al guardar: " + error.message);
@@ -1426,8 +1428,9 @@ function Dashboard({ setView, setSelector }) {
 
       {/* MODAL DE EDICIÓN OFICIO */}
       {editingOficio && (
-        <div onClick={() => setEditingOficio(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
-          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', background: 'white' }}>
+        <div onClick={() => setEditingOficio(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
+
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
             <div className="flex justify-between items-center mb-8">
               <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>Editar Oficio #{editingOficio.id}</h3>
               <button onClick={() => setEditingOficio(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
@@ -1476,8 +1479,8 @@ function Dashboard({ setView, setSelector }) {
 
       {/* MODAL DE EDICIÓN PERMISO */}
       {editingPermiso && (
-        <div onClick={() => setEditingPermiso(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
-          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', background: 'white' }}>
+        <div onClick={() => setEditingPermiso(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
             <div className="flex justify-between items-center mb-8">
               <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>Editar Permiso #{editingPermiso.id}</h3>
               <button onClick={() => setEditingPermiso(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
@@ -1559,8 +1562,8 @@ function Dashboard({ setView, setSelector }) {
 
       {/* MODAL DE EDICIÓN LICENCIA */}
       {editingLicencia && (
-        <div onClick={() => setEditingLicencia(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
-          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', background: 'white' }}>
+        <div onClick={() => setEditingLicencia(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '540px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
             <div className="flex justify-between items-center mb-8">
               <h3 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ef4444', margin: 0 }}>Editar Licencia #{editingLicencia.id}</h3>
               <button onClick={() => setEditingLicencia(null)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
@@ -1635,74 +1638,98 @@ function Dashboard({ setView, setSelector }) {
       )}
 
       {/* MODAL DE HISTORIAL POR FUNCIONARIO */}
-      {historyFuncionario && (
-        <div onClick={() => setHistoryFuncionario(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
-          <div onClick={(e) => e.stopPropagation()} className="card" style={{ position: 'relative', zIndex: 100000, width: '100%', maxWidth: '720px', padding: '2.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255,255,255,0.8)', maxHeight: '90vh', overflowY: 'auto', background: 'white' }}>
-            <div className="flex justify-between items-center mb-8">
-              <div className="flex items-center gap-4">
-                <div style={{ background: historyFuncionario.type === 'licencia' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(37, 99, 235, 0.1)', color: historyFuncionario.type === 'licencia' ? '#ef4444' : 'var(--primary)', padding: '0.625rem', borderRadius: '14px' }}>
-                  {historyFuncionario.type === 'licencia' ? <Activity size={24} /> : <Calendar size={24} />}
+            {historyFuncionario && (
+        <div onClick={() => setHistoryFuncionario(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ 
+            position: 'relative', 
+            zIndex: 100000, 
+            width: '100%', 
+            maxWidth: '820px', 
+            padding: 0, 
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', 
+            border: '1px solid rgba(255,255,255,0.8)', 
+            maxHeight: '90vh', 
+            overflow: 'hidden', 
+            background: 'white',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* CABECERA FIJA */}
+            <div style={{ padding: '2rem 2.5rem', borderBottom: '1px solid var(--border)', background: 'white', zIndex: 2 }}>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <div style={{ background: historyFuncionario.type === 'licencia' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(37, 99, 235, 0.1)', color: historyFuncionario.type === 'licencia' ? '#ef4444' : 'var(--primary)', padding: '0.625rem', borderRadius: '14px' }}>
+                    {historyFuncionario.type === 'licencia' ? <Activity size={24} /> : <Calendar size={24} />}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>Historial de {historyFuncionario.type === 'licencia' ? 'Licencias' : 'Permisos'}</h3>
+                    <p className="text-muted" style={{ fontSize: '0.875rem', margin: 0 }}>Funcionario: {historyFuncionario.nombre}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>Historial de {historyFuncionario.type === 'licencia' ? 'Licencias' : 'Permisos'}</h3>
-                  <p className="text-muted" style={{ fontSize: '0.875rem', margin: 0 }}>Funcionario: {historyFuncionario.nombre}</p>
-                </div>
+                <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', borderRadius: '12px' }} onClick={() => setHistoryFuncionario(null)}>Cerrar</button>
               </div>
-              <button className="btn btn-outline" style={{ padding: '0.5rem 1rem', borderRadius: '12px' }} onClick={() => setHistoryFuncionario(null)}>Cerrar</button>
             </div>
 
-            <div className="table-container" style={{ margin: 0, boxShadow: 'none', background: 'transparent', border: 'none' }}>
-              <table style={{ minWidth: '100%' }}>
-                <thead style={{ background: '#f8fafc' }}>
-                  <tr>
-                    <th style={{ padding: '1rem' }}>#</th>
-                    <th style={{ padding: '1rem' }}>Fecha Registro</th>
-                    <th style={{ padding: '1rem' }}>Rango de Fechas</th>
-                    <th style={{ padding: '1rem' }}>{historyFuncionario.type === 'licencia' ? 'Tipo' : 'Detalle'}</th>
-                    <th style={{ padding: '1rem', textAlign: 'right' }}>Días</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(historyFuncionario.type === 'licencia' ? licencias : permisos)
-                    .filter(p => p.funcionarioId === historyFuncionario.id)
-                    .map(p => (
-                    <tr key={`history-${p.id}`} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={{ padding: '1rem', fontWeight: 700, color: historyFuncionario.type === 'licencia' ? '#ef4444' : 'var(--primary)' }}>{p.id}</td>
-                      <td style={{ padding: '1rem' }}>{new Date(p.createdAt || new Date()).toLocaleDateString()}</td>
-                      <td style={{ padding: '1rem', fontWeight: 500 }}>{p.fechaInicio} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>→</span> {p.fechaFin}</td>
-                      <td style={{ padding: '1rem' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{historyFuncionario.type === 'licencia' ? p.tipoLicencia : (p.tipoPermiso || 'Administrativo')}</span>
-                      </td>
-                      <td style={{ padding: '1rem', textAlign: 'right' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                          <span className="badge" style={{ background: '#f1f5f9', color: '#444' }}>{p.diasUsados} d</span>
-                          {p.jornada && p.jornada.includes('Medio') && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{p.jornada}</span>}
-                        </div>
-                      </td>
+            {/* CUERPO DESPLAZABLE */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 2.5rem' }}>
+              <div className="table-container" style={{ margin: 0, boxShadow: 'none', background: 'transparent', border: 'none' }}>
+                <table style={{ minWidth: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
+                  <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: '#f8fafc' }}>
+                    <tr>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid var(--border)' }}>#</th>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid var(--border)' }}>Fecha Registro</th>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid var(--border)' }}>Rango de Fechas</th>
+                      <th style={{ padding: '1rem', borderBottom: '1px solid var(--border)' }}>{historyFuncionario.type === 'licencia' ? 'Tipo' : 'Detalle'}</th>
+                      <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '1px solid var(--border)' }}>Días</th>
                     </tr>
-                  ))}
-                  {(historyFuncionario.type === 'licencia' ? licencias : permisos)
-                    .filter(p => p.funcionarioId === historyFuncionario.id).length === 0 && (
-                    <tr><td colSpan="5" className="text-center p-12 text-muted">No se registran ocurrencias para este funcionario.</td></tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {(historyFuncionario.type === 'licencia' ? licencias : permisos)
+                      .filter(p => p.funcionarioId === historyFuncionario.id)
+                      .map(p => (
+                      <tr key={`history-${p.id}`} style={{ borderBottom: '1px solid var(--border)' }}>
+                        <td style={{ padding: '1rem', fontWeight: 700, color: historyFuncionario.type === 'licencia' ? '#ef4444' : 'var(--primary)' }}>{p.id}</td>
+                        <td style={{ padding: '1rem' }}>{new Date(p.createdAt || new Date()).toLocaleDateString()}</td>
+                        <td style={{ padding: '1rem', fontWeight: 500 }}>{p.fechaInicio} <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>→</span> {p.fechaFin}</td>
+                        <td style={{ padding: '1rem' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{historyFuncionario.type === 'licencia' ? p.tipoLicencia : (p.tipoPermiso || 'Administrativo')}</span>
+                        </td>
+                        <td style={{ padding: '1rem', textAlign: 'right' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                            <span className="badge" style={{ background: '#f1f5f9', color: '#444' }}>{p.diasUsados} d</span>
+                            {p.jornada && p.jornada.includes('Medio') && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{p.jornada}</span>}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {(historyFuncionario.type === 'licencia' ? licencias : permisos)
+                      .filter(p => p.funcionarioId === historyFuncionario.id).length === 0 && (
+                      <tr><td colSpan="5" className="text-center p-12 text-muted">No se registran ocurrencias para este funcionario.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
             
-            <div style={{ 
-              marginTop: '2rem', 
-              padding: '1.5rem', 
-              background: historyFuncionario.type === 'licencia' ? 'rgba(239, 68, 68, 0.05)' : 'hsla(221, 83%, 53%, 0.03)', 
-              borderRadius: '20px', 
-              border: historyFuncionario.type === 'licencia' ? '1px solid rgba(239, 68, 68, 0.1)' : '1px solid hsla(221, 83%, 53%, 0.08)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>Cómputo Total Anual:</span>
-              <span style={{ fontSize: '1.5rem', fontWeight: 900, color: historyFuncionario.type === 'licencia' ? '#ef4444' : 'var(--primary)' }}>
-                {(historyFuncionario.type === 'licencia' ? licencias : permisos).filter(p => p.funcionarioId === historyFuncionario.id).reduce((sum, current) => sum + current.diasUsados, 0)} días utilizados
-              </span>
+            {/* PIE DE PÃGINA FIJO */}
+            <div style={{ padding: '1.5rem 2.5rem', borderTop: '1px solid var(--border)', background: '#f8fafc' }}>
+              <div style={{ 
+                padding: '1.25rem', 
+                background: historyFuncionario.type === 'licencia' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(37, 99, 235, 0.05)', 
+                borderRadius: '16px', 
+                border: historyFuncionario.type === 'licencia' ? '1px solid rgba(239, 68, 68, 0.1)' : '1px solid rgba(37, 99, 235, 0.1)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>Cómputo Total Anual:</span>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 900, color: historyFuncionario.type === 'licencia' ? '#ef4444' : 'var(--primary)' }}>
+                    {(historyFuncionario.type === 'licencia' ? licencias : permisos).filter(p => p.funcionarioId === historyFuncionario.id).reduce((sum, current) => sum + current.diasUsados, 0)} días
+                  </span>
+                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>Registrados en el ciclo actual</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2006,3 +2033,5 @@ function LicenciaCalendar({ licencias }) {
     </div>
   );
 }
+
+

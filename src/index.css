@@ -362,3 +362,14 @@ tr:hover td {
   backdrop-filter: blur(24px) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
+
+/* Modal Stability Fixes */
+[style*="fixed"] .card:hover {
+  transform: none !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.modal-content-scroller {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+}

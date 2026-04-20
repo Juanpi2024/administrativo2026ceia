@@ -19,7 +19,7 @@ export default function Selector({ isOpen, onClose, title, subtitle, items, onSe
         left: 0, 
         right: 0, 
         bottom: 0, 
-        background: 'rgba(15, 23, 42, 0.4)', 
+        background: 'rgba(15, 23, 42, 0.65)', 
         backdropFilter: 'blur(12px)', 
         WebkitBackdropFilter: 'blur(12px)', 
         display: 'flex', 
