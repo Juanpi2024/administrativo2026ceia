@@ -8,6 +8,9 @@ import BirthdayModal from './components/BirthdayModal';
 import Selector from './components/Selector';
 import { loadOficios, loadPermisos, saveOficio, savePermiso, checkPermisosDays, deleteOficio, deletePermiso, updateOficio, updatePermiso, saveLicencia, loadLicencias, deleteLicencia, updateLicencia } from './services/db';
 import { sendPermisoEmail, sendAdminEmail } from './services/email';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import './index.css';
 
 const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name, 'es'));
@@ -941,36 +944,109 @@ function Dashboard({ setView, setSelector }) {
     }
   };
 
-  const exportToCSV = () => {
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+  const exportToExcel = () => {
+    let dataToExport = [];
+    let filename = `reporte_${tab}_CEIA_${new Date().toISOString().split('T')[0]}.xlsx`;
 
     if (tab === 'oficios') {
-      csvContent += "ID,Fecha,Emisor,Destinatario,Materia\n";
-      oficios.forEach(o => {
-        const row = [o.id, new Date(o.createdAt || o.fechaEmision).toLocaleDateString(), `"${o.emisorNombre}"`, `"${o.destinatario}"`, `"${o.materia}"`].join(",");
-        csvContent += row + "\n";
-      });
+      dataToExport = oficios.map(o => ({
+        ID: o.id,
+        Fecha: new Date(o.createdAt || o.fechaEmision).toLocaleDateString(),
+        Emisor: o.emisorNombre,
+        Destinatario: o.destinatario,
+        Materia: o.materia
+      }));
     } else if (tab === 'permisos') {
-      csvContent += "ID,Fecha Registro,Funcionario,Fecha Inicio,Fecha Fin,Dias Usados,Jornada\n";
-      permisos.forEach(p => {
-        const row = [p.id, new Date(p.createdAt || new Date()).toLocaleDateString(), `"${p.funcionarioNombre}"`, p.fechaInicio, p.fechaFin, p.diasUsados, p.jornada || "Completa"].join(",");
-        csvContent += row + "\n";
+      // Planilla completa de funcionarios con sus permisos
+      // Formato: Nombre, RUT, Día del permiso, Jornada, Total
+      dataToExport = [];
+      users.forEach(u => {
+        const userPermisos = permisos.filter(p => p.funcionarioId === u.id || String(p.funcionarioId) === String(u.id));
+        const totalUsados = userPermisos.reduce((acc, p) => acc + (p.diasUsados || 0), 0);
+        
+        if (userPermisos.length > 0) {
+          userPermisos.forEach(p => {
+            dataToExport.push({
+              Nombre: u.name,
+              RUT: u.rut || 'Sin Registro',
+              'Día del Permiso': `${p.fechaInicio}${p.fechaInicio !== p.fechaFin ? ' al ' + p.fechaFin : ''}`,
+              Jornada: p.jornada || 'Completa',
+              Total: totalUsados
+            });
+          });
+        } else {
+          dataToExport.push({
+            Nombre: u.name,
+            RUT: u.rut || 'Sin Registro',
+            'Día del Permiso': 'Ninguno',
+            Jornada: '-',
+            Total: 0
+          });
+        }
       });
+      // Sort by Name
+      dataToExport.sort((a, b) => a.Nombre.localeCompare(b.Nombre, 'es'));
+      filename = `Planilla_Permisos_Completos_CEIA.xlsx`;
     } else if (tab === 'licencias') {
-      csvContent += "ID,Fecha Registro,Funcionario,Fecha Inicio,Fecha Fin,Dias Usados,Jornada,Tipo\n";
-      licencias.forEach(l => {
-        const row = [l.id, new Date(l.createdAt || new Date()).toLocaleDateString(), `"${l.funcionarioNombre}"`, l.fechaInicio, l.fechaFin, l.diasUsados, l.jornada || "Completa", l.tipoLicencia].join(",");
-        csvContent += row + "\n";
-      });
+      dataToExport = licencias.map(l => ({
+        ID: l.id,
+        'Fecha Registro': new Date(l.createdAt || new Date()).toLocaleDateString(),
+        Funcionario: l.funcionarioNombre,
+        'Fecha Inicio': l.fechaInicio,
+        'Fecha Fin': l.fechaFin,
+        'Dias Usados': l.diasUsados,
+        Jornada: l.jornada || "Completa",
+        Tipo: l.tipoLicencia
+      }));
     }
 
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `reporte_${tab}_CEIA_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, tab.toUpperCase());
+    XLSX.writeFile(workbook, filename);
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.text(`Reporte de ${tab.toUpperCase()} - CEIA`, 14, 15);
+    
+    let head = [];
+    let body = [];
+
+    if (tab === 'oficios') {
+      head = [['ID', 'Fecha', 'Emisor', 'Destinatario', 'Materia']];
+      body = oficios.map(o => [o.id, new Date(o.createdAt || o.fechaEmision).toLocaleDateString(), o.emisorNombre, o.destinatario, o.materia]);
+    } else if (tab === 'permisos') {
+      head = [['Nombre', 'RUT', 'Día del Permiso', 'Jornada', 'Total Días']];
+      const dataRows = [];
+      users.forEach(u => {
+        const userPermisos = permisos.filter(p => p.funcionarioId === u.id || String(p.funcionarioId) === String(u.id));
+        const totalUsados = userPermisos.reduce((acc, p) => acc + (p.diasUsados || 0), 0);
+        
+        if (userPermisos.length > 0) {
+          userPermisos.forEach(p => {
+            dataRows.push([u.name, u.rut || 'Sin Registro', `${p.fechaInicio}${p.fechaInicio !== p.fechaFin ? ' al ' + p.fechaFin : ''}`, p.jornada || 'Completa', totalUsados]);
+          });
+        } else {
+          dataRows.push([u.name, u.rut || 'Sin Registro', 'Ninguno', '-', 0]);
+        }
+      });
+      dataRows.sort((a, b) => a[0].localeCompare(b[0], 'es'));
+      body = dataRows;
+    } else if (tab === 'licencias') {
+      head = [['ID', 'Funcionario', 'Inicio', 'Fin', 'Días', 'Jornada', 'Tipo']];
+      body = licencias.map(l => [l.id, l.funcionarioNombre, l.fechaInicio, l.fechaFin, l.diasUsados, l.jornada || "Completa", l.tipoLicencia]);
+    }
+
+    doc.autoTable({
+      head: head,
+      body: body,
+      startY: 20,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [37, 99, 235] }
+    });
+
+    doc.save(`reporte_${tab}_CEIA.pdf`);
   };
 
   const shareWhatsApp = () => {
@@ -1264,8 +1340,11 @@ function Dashboard({ setView, setSelector }) {
         )}
 
         <div className="flex gap-3">
-          <button onClick={exportToCSV} className="btn btn-outline" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem', borderRadius: '12px' }} title="Descargar como Excel">
-            <Download size={18} /> <span className="hidden sm:inline">Exportar CSV</span>
+          <button onClick={exportToExcel} className="btn btn-outline" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem', borderRadius: '12px' }} title="Descargar como Excel">
+            <Download size={18} /> <span className="hidden sm:inline">Exportar Excel</span>
+          </button>
+          <button onClick={exportToPDF} className="btn btn-outline" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem', borderRadius: '12px', borderColor: '#ef4444', color: '#ef4444' }} title="Descargar como PDF">
+            <FileText size={18} /> <span className="hidden sm:inline">Exportar PDF</span>
           </button>
           <button onClick={shareWhatsApp} className="btn" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem', background: '#22c55e', color: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)' }} title="Enviar Reporte por WhatsApp">
             <MessageCircle size={18} /> <span className="hidden sm:inline">WhatsApp</span>
@@ -1306,25 +1385,19 @@ function Dashboard({ setView, setSelector }) {
                         style={{ padding: '0.4rem', borderRadius: '10px', color: '#10b981' }} 
                         onClick={async (e) => {
                           e.preventDefault();
-                          console.log("CLIC: Notificar Oficio", o.id);
                           const emisor = users.find(u => String(u.id) === String(o.emisorId));
-                          if (!emisor) {
-                            console.error("Error: Emisor no encontrado para ID", o.emisorId);
-                            return alert('Error: Emisor no encontrado.');
-                          }
-                          console.log("Preparando confirmación para:", emisor.email);
-                          const confirmed = confirm(`¿Enviar copia de este oficio a ${emisor.email}?`);
-                          console.log("Resultado confirmación:", confirmed);
-                          if (confirmed) {
+                          if (!emisor || !emisor.email) return alert('El emisor no tiene un correo configurado.');
+                          
+                          if (window.confirm(`¿Enviar copia de este oficio a ${emisor.email}?`)) {
                             try {
-                              console.log("Iniciando envío de correo...");
                               const res = await sendAdminEmail('Registro de Oficio', emisor.name, emisor.email, o);
-                              console.log("Resultado envío:", res);
-                              if (res.success) alert(res.mock ? 'MODO SIMULACIÓN: Los datos se mostraron en la consola (F12).' : 'Correo enviado exitosamente.');
-                              else alert('Error al enviar: ' + (res.error?.message || 'Error desconocido'));
+                              if (res.success) {
+                                alert(res.mock ? 'MODO SIMULACIÓN: Los datos se mostraron en la consola (F12).' : '✅ Correo enviado exitosamente.');
+                              } else {
+                                alert('❌ Error al enviar: ' + (res.error?.text || res.error?.message || 'Revisa tu configuración de EmailJS.'));
+                              }
                             } catch (err) {
-                              console.error("Error fatal en catch:", err);
-                              alert('Error al procesar: ' + err.message);
+                              alert('Error al realizar la operación: ' + err.message);
                             }
                           }
                         }}
@@ -1399,27 +1472,22 @@ function Dashboard({ setView, setSelector }) {
                           style={{ padding: '0.4rem', borderRadius: '10px', color: '#10b981' }} 
                           onClick={async (e) => {
                             e.preventDefault();
-                            console.log("CLIC: Notificar Permiso", p.id);
                             const func = users.find(u => String(u.id) === String(p.funcionarioId));
-                            if (!func) {
-                                console.error("Error: Funcionario no encontrado para ID", p.funcionarioId);
-                                return alert('Error: Funcionario no encontrado.');
-                            }
-                            console.log("Preparando confirmación para:", func.email);
-                            const confirmed = confirm(`¿Enviar notificación de este permiso a ${func.email}?`);
-                            console.log("Resultado confirmación:", confirmed);
-                            if (confirmed) {
+                            if (!func || !func.email) return alert('El funcionario no tiene un correo configurado.');
+
+                            const msg = `¿Enviar notificación de este permiso a ${func.email}?\n\nDetalles:\n- Días usados: ${p.diasUsados}\n- Periodo: ${p.fechaInicio} al ${p.fechaFin}`;
+                            
+                            if (window.confirm(msg)) {
                               try {
-                                console.log("Obteniendo días de permiso...");
                                 const { taken, left } = await checkPermisosDays(func.id);
-                                console.log(`Días: Usados=${taken}, Libres=${left}. Enviando...`);
                                 const res = await sendPermisoEmail(func.email, func.name, taken, left, p);
-                                console.log("Resultado envío:", res);
-                                if (res.success) alert(res.mock ? 'MODO SIMULACIÓN: Los datos se mostraron en la consola (F12).' : 'Correo enviado exitosamente.');
-                                else alert('Error al enviar: ' + (res.error?.message || 'Error desconocido'));
+                                if (res.success) {
+                                  alert(res.mock ? 'MODO SIMULACIÓN: Datos en consola.' : '✅ Correo enviado exitosamente.');
+                                } else {
+                                  alert('❌ Error al enviar: ' + (res.error?.text || res.error?.message || 'Revisa tu configuración de EmailJS.'));
+                                }
                               } catch (err) {
-                                console.error("Error fatal en catch:", err);
-                                alert('Error al procesar: ' + err.message);
+                                alert('Error al realizar la operación: ' + err.message);
                               }
                             }
                           }}
@@ -1495,22 +1563,19 @@ function Dashboard({ setView, setSelector }) {
                           style={{ padding: '0.4rem', borderRadius: '10px', color: '#10b981' }} 
                           onClick={async (e) => {
                             e.preventDefault();
-                            console.log("CLIC: Notificar Licencia", l.id || l.licenciaId);
                             const func = users.find(u => String(u.id) === String(l.funcionarioId));
-                            if (!func) return alert('Funcionario no encontrado.');
-                            console.log("Preparando confirmación para:", func.email);
-                            const confirmed = confirm(`¿Enviar comprobante de esta licencia a ${func.email}?`);
-                            console.log("Resultado confirmación:", confirmed);
-                            if (confirmed) {
+                            if (!func || !func.email) return alert('El funcionario no tiene un correo configurado.');
+                            
+                            if (window.confirm(`¿Enviar comprobante de esta licencia a ${func.email}?`)) {
                               try {
-                                console.log("Iniciando envío de correo de licencia...");
                                 const res = await sendAdminEmail('Registro de Licencia Médica', func.name, func.email, l);
-                                console.log("Resultado envío:", res);
-                                if (res.success) alert(res.mock ? 'MODO SIMULACIÓN: Los datos se mostraron en la consola (F12).' : 'Correo enviado exitosamente.');
-                                else alert('Error al enviar: ' + (res.error?.message || 'Error desconocido'));
+                                if (res.success) {
+                                  alert(res.mock ? 'MODO SIMULACIÓN: Datos en consola.' : '✅ Correo enviado exitosamente.');
+                                } else {
+                                  alert('❌ Error al enviar: ' + (res.error?.text || res.error?.message || 'Revisa tu configuración de EmailJS.'));
+                                }
                               } catch (err) {
-                                console.error("Error fatal en catch licencia:", err);
-                                alert('Error al procesar: ' + err.message);
+                                alert('Error al realizar la operación: ' + err.message);
                               }
                             }
                           }}
