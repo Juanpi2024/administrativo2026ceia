@@ -1,9 +1,10 @@
 export const users = [
     {
         "id": 1,
-        "name": "Alegría Vanesa",
+        "name": "VANESSA DE LOURDES ALEGRÍA MARTÍNEZ",
         "email": "vanessa.alegria@slepla.gob.cl",
-        "role": "lector"
+        "role": "lector",
+        "rut": "13615557-1"
     },
     {
         "id": 2,
@@ -21,10 +22,10 @@ export const users = [
     },
     {
         "id": 4,
-        "name": "INGRID JOHANNA SEPÚLVEDA FUENTES",
+        "name": "XIMENA INGRID ARRIAGADA SEPÚLVEDA",
         "email": "ximena.arriagada@slepla.gob.cl",
         "role": "lector",
-        "rut": "15431516-0"
+        "rut": "14399711-1"
     },
     {
         "id": 5,
@@ -91,14 +92,13 @@ export const users = [
     },
     {
         "id": 14,
-        "name": "MARÍA JOSÉ ANDRADES INOSTROZA",
+        "name": "MARÍA JOSÉ MORALES SEPÚLVEDA",
         "email": "maria.morales@slepla.gob.cl",
-        "role": "lector",
-        "rut": "20316347-9"
+        "role": "lector"
     },
     {
         "id": 15,
-        "name": "Morales Velásquez Miguel Ángel",
+        "name": "MIGUEL ÁNGEL MORALES VELÁSQUEZ",
         "email": "miguel.morales@slepla.gob.cl",
         "role": "lector"
     },
@@ -140,7 +140,7 @@ export const users = [
     },
     {
         "id": 21,
-        "name": "Robles Pinto Flavio Rigoberto",
+        "name": "FLAVIO RIGOBERTO ROBLES PINTO",
         "email": "flavio.robles@slepla.gob.cl",
         "role": "lector"
     },
@@ -167,7 +167,7 @@ export const users = [
     },
     {
         "id": 25,
-        "name": "Soto Parra Carolina Alejandra",
+        "name": "CAROLINA ALEJANDRA SOTO PARRA",
         "email": "carolina.soto@slepla.gob.cl",
         "role": "lector"
     },
@@ -201,7 +201,7 @@ export const users = [
     },
     {
         "id": 30,
-        "name": "Matias Morales",
+        "name": "MATÍAS MORALES",
         "email": "matias.morales@slepla.gob.cl",
         "role": "lector"
     },
@@ -264,10 +264,10 @@ export const users = [
     },
     {
         "id": 39,
-        "name": "MARÍA DE LOS ANGELES CANALES AMIGO",
+        "name": "MARÍA JOSÉ ANDRADES INOSTROZA",
         "email": "maria.andrades@slepla.gob.cl",
         "role": "lector",
-        "rut": "8977019-K"
+        "rut": "20316347-9"
     },
     {
         "id": 40,
@@ -289,20 +289,6 @@ export const users = [
         "email": "daniela.navarrete@slepla.gob.cl",
         "role": "lector",
         "rut": "18920251-2"
-    },
-    {
-        "id": 43,
-        "name": "XIMENA INGRID ARRIAGADA SEPÚLVEDA",
-        "email": "ximena.arriagada@slepla.gob.cl",
-        "role": "lector",
-        "rut": "14399711-1"
-    },
-    {
-        "id": 44,
-        "name": "VANESSA DE LOURDES ALEGRÍA MARTÍNEZ",
-        "email": "vanessa.alegria@slepla.gob.cl",
-        "role": "lector",
-        "rut": "13615557-1"
     }
 ];
 
