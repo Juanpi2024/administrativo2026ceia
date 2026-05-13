@@ -1202,6 +1202,118 @@ function Dashboard({ setView, setSelector }) {
     }
   };
 
+  // --- EXPORTAR PDF INDIVIDUAL POR FUNCIONARIO (Solo Permisos) ---
+  const exportFuncionarioPDF = (funcionarioId, funcionarioNombre) => {
+    try {
+      const func = users.find(u => u.id === funcionarioId || String(u.id) === String(funcionarioId));
+      const funcionarioRut = func?.rut || 'Sin Registro';
+      const funcionarioPermisos = permisos.filter(p => 
+        String(p.funcionarioId) === String(funcionarioId)
+      );
+
+      if (funcionarioPermisos.length === 0) {
+        return alert('Este funcionario no tiene permisos registrados.');
+      }
+
+      const doc = new jsPDF({ orientation: 'portrait' });
+
+      // Encabezado con fondo azul
+      doc.setFillColor(37, 99, 235);
+      doc.rect(0, 0, 210, 38, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text('Reporte Individual de Permisos Administrativos', 14, 16);
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Funcionario: ${funcionarioNombre}`, 14, 24);
+      doc.text(`RUT: ${funcionarioRut}`, 14, 30);
+      doc.text(`Generado: ${new Date().toLocaleDateString('es-CL')}`, 14, 36);
+
+      // Resetear color de texto
+      doc.setTextColor(0, 0, 0);
+
+      // Construir datos de la tabla
+      const head = [['#', 'Fecha Registro', 'Periodo de Ausencia', 'Jornada', 'Días']];
+      const body = funcionarioPermisos.map((p, idx) => [
+        idx + 1,
+        new Date(p.createdAt || new Date()).toLocaleDateString('es-CL'),
+        `${p.fechaInicio}${p.fechaInicio !== p.fechaFin ? ' al ' + p.fechaFin : ''}`,
+        p.jornada || 'Completa',
+        p.diasUsados
+      ]);
+
+      // Calcular totales
+      const totalDias = funcionarioPermisos.reduce((sum, p) => sum + (p.diasUsados || 0), 0);
+      const diasAdmin = funcionarioPermisos.filter(p => 
+        p.tipoPermiso === 'Día Administrativo' && 
+        new Date(p.fechaInicio).getFullYear() === 2026
+      ).reduce((sum, p) => sum + (p.diasUsados || 0), 0);
+
+      // Fila de total
+      body.push(['', '', '', { content: 'TOTAL DÍAS:', styles: { fontStyle: 'bold', halign: 'right' } }, { content: String(totalDias), styles: { fontStyle: 'bold', halign: 'center' } }]);
+
+      autoTable(doc, {
+        head: head,
+        body: body,
+        startY: 44,
+        theme: 'grid',
+        styles: {
+          fontSize: 9,
+          cellPadding: 4,
+          lineColor: [0, 0, 0],
+          lineWidth: 0.25
+        },
+        headStyles: {
+          fillColor: [37, 99, 235],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 247, 250]
+        },
+        columnStyles: {
+          0: { cellWidth: 12, halign: 'center' },
+          1: { cellWidth: 32 },
+          2: { cellWidth: 55 },
+          3: { cellWidth: 40 },
+          4: { cellWidth: 20, halign: 'center' }
+        }
+      });
+
+      // Resumen después de la tabla
+      const finalY = doc.lastAutoTable?.finalY || 120;
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(14, finalY + 8, 182, 28, 3, 3, 'F');
+      doc.setDrawColor(37, 99, 235);
+      doc.roundedRect(14, finalY + 8, 182, 28, 3, 3, 'S');
+
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(37, 99, 235);
+      doc.text(`Total Permisos Registrados: ${funcionarioPermisos.length}`, 20, finalY + 18);
+      doc.text(`Total Días Usados: ${totalDias}`, 20, finalY + 26);
+      doc.text(`Días Administrativos 2026: ${diasAdmin} / 6`, 120, finalY + 18);
+      doc.text(`Saldo Disponible: ${Math.max(0, 6 - diasAdmin)} días`, 120, finalY + 26);
+
+      // Pie de página
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Página ${i} de ${pageCount} — CEIA Los Álamos`, doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+      }
+
+      const safeName = funcionarioNombre.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_áéíóúñÁÉÍÓÚÑ]/g, '');
+      doc.save(`Permisos_${safeName}_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error al generar PDF individual:', error);
+      alert('Error al generar el PDF individual. Revisa la consola.');
+    }
+  };
+
   const shareWhatsApp = () => {
     const today = new Date().toLocaleDateString();
     let text = `*Reporte Diario CEIA* (${today})\n\n`;
@@ -1669,6 +1781,14 @@ function Dashboard({ setView, setSelector }) {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div className="flex justify-end gap-2">
+                        <button 
+                          className="btn btn-outline" 
+                          style={{ padding: '0.4rem', borderRadius: '10px', color: '#2563eb', border: '1px solid #dbeafe' }} 
+                          onClick={() => exportFuncionarioPDF(p.funcionarioId, p.funcionarioNombre)}
+                          title="Descargar PDF Individual"
+                        >
+                          <Download size={16} />
+                        </button>
                         <button 
                           className="btn btn-outline" 
                           style={{ padding: '0.4rem', borderRadius: '10px', color: '#10b981' }} 
