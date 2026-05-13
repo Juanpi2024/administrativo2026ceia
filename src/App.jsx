@@ -9,8 +9,8 @@ import Selector from './components/Selector';
 import { loadOficios, loadPermisos, saveOficio, savePermiso, checkPermisosDays, deleteOficio, deletePermiso, updateOficio, updatePermiso, saveLicencia, loadLicencias, deleteLicencia, updateLicencia } from './services/db';
 import { sendPermisoEmail, sendAdminEmail } from './services/email';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx-js-style';
 import './index.css';
 
 const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name, 'es'));
@@ -839,12 +839,26 @@ function LicenciaForm({ setView, setSelector }) {
   );
 }
 
+const MONTH_OPTIONS = [
+  { value: 3, label: 'Marzo' },
+  { value: 4, label: 'Abril' },
+  { value: 5, label: 'Mayo' },
+  { value: 6, label: 'Junio' },
+  { value: 7, label: 'Julio' },
+  { value: 8, label: 'Agosto' },
+  { value: 9, label: 'Septiembre' },
+  { value: 10, label: 'Octubre' },
+  { value: 11, label: 'Noviembre' },
+  { value: 12, label: 'Diciembre' },
+];
+
 function Dashboard({ setView, setSelector }) {
   const [tab, setTab] = useState('oficios');
   const [oficios, setOficios] = useState([]);
   const [permisos, setPermisos] = useState([]);
   const [licencias, setLicencias] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMonths, setSelectedMonths] = useState([3, 4, 5]); // Meses seleccionados para el reporte
 
   const [editingOficio, setEditingOficio] = useState(null);
   const [editingPermiso, setEditingPermiso] = useState(null);
@@ -852,6 +866,19 @@ function Dashboard({ setView, setSelector }) {
   const [historyFuncionario, setHistoryFuncionario] = useState(null);
   const [permisoViewMode, setPermisoViewMode] = useState('table'); // 'table' or 'calendar'
   const [licenciaViewMode, setLicenciaViewMode] = useState('table');
+
+  const toggleMonth = (monthVal) => {
+    setSelectedMonths(prev => {
+      if (prev.includes(monthVal)) {
+        // No permitir deseleccionar todos
+        if (prev.length === 1) return prev;
+        return prev.filter(m => m !== monthVal);
+      }
+      return [...prev, monthVal].sort((a, b) => a - b);
+    });
+  };
+
+  const selectedMonthsLabel = selectedMonths.map(m => MONTH_OPTIONS.find(o => o.value === m)?.label).filter(Boolean).join('_');
 
   const isAnyModalOpen = Boolean(editingOficio || editingPermiso || editingLicencia || historyFuncionario);
 
@@ -944,109 +971,235 @@ function Dashboard({ setView, setSelector }) {
     }
   };
 
-  const exportToExcel = () => {
-    let dataToExport = [];
-    let filename = `reporte_${tab}_CEIA_${new Date().toISOString().split('T')[0]}.xlsx`;
-
-    if (tab === 'oficios') {
-      dataToExport = oficios.map(o => ({
-        ID: o.id,
-        Fecha: new Date(o.createdAt || o.fechaEmision).toLocaleDateString(),
-        Emisor: o.emisorNombre,
-        Destinatario: o.destinatario,
-        Materia: o.materia
-      }));
-    } else if (tab === 'permisos') {
-      // Planilla completa de funcionarios con sus permisos
-      // Formato: Nombre, RUT, Día del permiso, Jornada, Total
-      dataToExport = [];
-      users.forEach(u => {
-        const userPermisos = permisos.filter(p => p.funcionarioId === u.id || String(p.funcionarioId) === String(u.id));
-        const totalUsados = userPermisos.reduce((acc, p) => acc + (p.diasUsados || 0), 0);
-        
-        if (userPermisos.length > 0) {
-          userPermisos.forEach(p => {
-            dataToExport.push({
-              Nombre: u.name,
-              RUT: u.rut || 'Sin Registro',
-              'Día del Permiso': `${p.fechaInicio}${p.fechaInicio !== p.fechaFin ? ' al ' + p.fechaFin : ''}`,
-              Jornada: p.jornada || 'Completa',
-              Total: totalUsados
-            });
-          });
-        } else {
-          dataToExport.push({
-            Nombre: u.name,
-            RUT: u.rut || 'Sin Registro',
-            'Día del Permiso': 'Ninguno',
-            Jornada: '-',
-            Total: 0
-          });
-        }
-      });
-      // Sort by Name
-      dataToExport.sort((a, b) => a.Nombre.localeCompare(b.Nombre, 'es'));
-      filename = `Planilla_Permisos_Completos_CEIA.xlsx`;
-    } else if (tab === 'licencias') {
-      dataToExport = licencias.map(l => ({
-        ID: l.id,
-        'Fecha Registro': new Date(l.createdAt || new Date()).toLocaleDateString(),
-        Funcionario: l.funcionarioNombre,
-        'Fecha Inicio': l.fechaInicio,
-        'Fecha Fin': l.fechaFin,
-        'Dias Usados': l.diasUsados,
-        Jornada: l.jornada || "Completa",
-        Tipo: l.tipoLicencia
-      }));
+  const filterByDate = (dateString) => {
+    if (!dateString) return false;
+    // Try parsing YYYY-MM-DD directly first
+    const parts = String(dateString).split('-');
+    if (parts.length >= 2) {
+      const m = parseInt(parts[1], 10);
+      return selectedMonths.includes(m);
     }
-
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, tab.toUpperCase());
-    XLSX.writeFile(workbook, filename);
+    const date = new Date(dateString);
+    if (isNaN(date)) return false;
+    const m = date.getMonth() + 1;
+    return selectedMonths.includes(m);
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    doc.text(`Reporte de ${tab.toUpperCase()} - CEIA`, 14, 15);
-    
-    let head = [];
-    let body = [];
+  // --- Helper: construir datos para exportar permisos ---
+  const buildPermisosData = () => {
+    const filteredPermisos = permisos.filter(p => filterByDate(p.fechaInicio || p.createdAt));
+    const rows = [];
+    users.forEach(u => {
+      const userPermisos = filteredPermisos.filter(p => p.funcionarioId === u.id || String(p.funcionarioId) === String(u.id));
+      const totalUsados = userPermisos.reduce((acc, p) => acc + (p.diasUsados || 0), 0);
+      if (userPermisos.length > 0) {
+        userPermisos.forEach(p => {
+          rows.push([
+            u.name,
+            u.rut || 'Sin Registro',
+            `${p.fechaInicio}${p.fechaInicio !== p.fechaFin ? ' al ' + p.fechaFin : ''}`,
+            p.jornada || 'Completa',
+            totalUsados
+          ]);
+        });
+      } else {
+        rows.push([u.name, u.rut || 'Sin Registro', 'Ninguno', '-', 0]);
+      }
+    });
+    rows.sort((a, b) => a[0].localeCompare(b[0], 'es'));
+    return rows;
+  };
+
+  // --- EXPORTAR EXCEL CON FORMATO PROFESIONAL ---
+  const exportToExcel = () => {
+    const filename = `reporte_${tab}_CEIA_${selectedMonthsLabel}.xlsx`;
+
+    // Estilos comunes
+    const headerStyle = {
+      font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11, name: 'Calibri' },
+      fill: { fgColor: { rgb: '2563EB' } },
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border: {
+        top: { style: 'thin', color: { rgb: '000000' } },
+        bottom: { style: 'thin', color: { rgb: '000000' } },
+        left: { style: 'thin', color: { rgb: '000000' } },
+        right: { style: 'thin', color: { rgb: '000000' } }
+      }
+    };
+    const cellStyle = {
+      font: { sz: 10, name: 'Calibri' },
+      alignment: { vertical: 'center', wrapText: true },
+      border: {
+        top: { style: 'thin', color: { rgb: '000000' } },
+        bottom: { style: 'thin', color: { rgb: '000000' } },
+        left: { style: 'thin', color: { rgb: '000000' } },
+        right: { style: 'thin', color: { rgb: '000000' } }
+      }
+    };
+    const numberStyle = {
+      ...cellStyle,
+      alignment: { ...cellStyle.alignment, horizontal: 'center' }
+    };
+
+    let headers = [];
+    let dataRows = [];
+    let colWidths = [];
 
     if (tab === 'oficios') {
-      head = [['ID', 'Fecha', 'Emisor', 'Destinatario', 'Materia']];
-      body = oficios.map(o => [o.id, new Date(o.createdAt || o.fechaEmision).toLocaleDateString(), o.emisorNombre, o.destinatario, o.materia]);
+      const filteredOficios = oficios.filter(o => filterByDate(o.createdAt || o.fechaEmision));
+      headers = ['ID', 'Fecha', 'Emisor', 'Destinatario', 'Materia'];
+      dataRows = filteredOficios.map(o => [
+        o.id,
+        new Date(o.createdAt || o.fechaEmision).toLocaleDateString(),
+        o.emisorNombre,
+        o.destinatario,
+        o.materia
+      ]);
+      colWidths = [{ wch: 8 }, { wch: 14 }, { wch: 42 }, { wch: 40 }, { wch: 50 }];
     } else if (tab === 'permisos') {
-      head = [['Nombre', 'RUT', 'Día del Permiso', 'Jornada', 'Total Días']];
-      const dataRows = [];
-      users.forEach(u => {
-        const userPermisos = permisos.filter(p => p.funcionarioId === u.id || String(p.funcionarioId) === String(u.id));
-        const totalUsados = userPermisos.reduce((acc, p) => acc + (p.diasUsados || 0), 0);
-        
-        if (userPermisos.length > 0) {
-          userPermisos.forEach(p => {
-            dataRows.push([u.name, u.rut || 'Sin Registro', `${p.fechaInicio}${p.fechaInicio !== p.fechaFin ? ' al ' + p.fechaFin : ''}`, p.jornada || 'Completa', totalUsados]);
-          });
-        } else {
-          dataRows.push([u.name, u.rut || 'Sin Registro', 'Ninguno', '-', 0]);
-        }
-      });
-      dataRows.sort((a, b) => a[0].localeCompare(b[0], 'es'));
-      body = dataRows;
+      headers = ['Nombre', 'RUT', 'Día del Permiso', 'Jornada', 'Total'];
+      dataRows = buildPermisosData();
+      colWidths = [{ wch: 45 }, { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 8 }];
     } else if (tab === 'licencias') {
-      head = [['ID', 'Funcionario', 'Inicio', 'Fin', 'Días', 'Jornada', 'Tipo']];
-      body = licencias.map(l => [l.id, l.funcionarioNombre, l.fechaInicio, l.fechaFin, l.diasUsados, l.jornada || "Completa", l.tipoLicencia]);
+      const filteredLicencias = licencias.filter(l => filterByDate(l.fechaInicio || l.createdAt));
+      headers = ['ID', 'Fecha Registro', 'Funcionario', 'Fecha Inicio', 'Fecha Fin', 'Días Usados', 'Jornada', 'Tipo'];
+      dataRows = filteredLicencias.map(l => [
+        l.id,
+        new Date(l.createdAt || new Date()).toLocaleDateString(),
+        l.funcionarioNombre,
+        l.fechaInicio,
+        l.fechaFin,
+        l.diasUsados,
+        l.jornada || 'Completa',
+        l.tipoLicencia
+      ]);
+      colWidths = [{ wch: 8 }, { wch: 16 }, { wch: 42 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 22 }, { wch: 28 }];
     }
 
-    doc.autoTable({
-      head: head,
-      body: body,
-      startY: 20,
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [37, 99, 235] }
-    });
+    // Construir el worksheet manualmente para aplicar estilos
+    const wsData = [headers, ...dataRows];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    doc.save(`reporte_${tab}_CEIA.pdf`);
+    // Aplicar anchos de columna
+    ws['!cols'] = colWidths;
+
+    // Aplicar estilos a cada celda
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; R++) {
+      for (let C = range.s.c; C <= range.e.c; C++) {
+        const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws[cellRef]) continue;
+        if (R === 0) {
+          // Fila de encabezado
+          ws[cellRef].s = headerStyle;
+        } else {
+          // Celdas de datos - detectar si es numérico para centrar
+          const val = ws[cellRef].v;
+          if (typeof val === 'number') {
+            ws[cellRef].s = numberStyle;
+          } else {
+            ws[cellRef].s = cellStyle;
+          }
+        }
+      }
+    }
+
+    // Altura de fila para encabezado
+    ws['!rows'] = [{ hpx: 28 }];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, tab.toUpperCase());
+    XLSX.writeFile(wb, filename);
+  };
+
+  // --- EXPORTAR PDF ---
+  const exportToPDF = () => {
+    try {
+      const monthsTitle = selectedMonths.map(m => MONTH_OPTIONS.find(o => o.value === m)?.label).filter(Boolean).join(', ');
+      const doc = new jsPDF({ orientation: tab === 'licencias' ? 'landscape' : 'portrait' });
+      
+      // Título
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Reporte de ${tab.charAt(0).toUpperCase() + tab.slice(1)} - CEIA`, 14, 15);
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Periodo: ${monthsTitle} 2026`, 14, 22);
+      doc.text(`Generado: ${new Date().toLocaleDateString('es-CL')}`, 14, 28);
+
+      let head = [];
+      let body = [];
+
+      if (tab === 'oficios') {
+        const filteredOficios = oficios.filter(o => filterByDate(o.createdAt || o.fechaEmision));
+        head = [['ID', 'Fecha', 'Emisor', 'Destinatario', 'Materia']];
+        body = filteredOficios.map(o => [
+          o.id,
+          new Date(o.createdAt || o.fechaEmision).toLocaleDateString(),
+          o.emisorNombre,
+          o.destinatario,
+          o.materia
+        ]);
+      } else if (tab === 'permisos') {
+        head = [['Nombre', 'RUT', 'Día del Permiso', 'Jornada', 'Total']];
+        body = buildPermisosData();
+      } else if (tab === 'licencias') {
+        const filteredLicencias = licencias.filter(l => filterByDate(l.fechaInicio || l.createdAt));
+        head = [['ID', 'Funcionario', 'Inicio', 'Fin', 'Días', 'Jornada', 'Tipo']];
+        body = filteredLicencias.map(l => [
+          l.id,
+          l.funcionarioNombre,
+          l.fechaInicio,
+          l.fechaFin,
+          l.diasUsados,
+          l.jornada || 'Completa',
+          l.tipoLicencia
+        ]);
+      }
+
+      autoTable(doc, {
+        head: head,
+        body: body,
+        startY: 34,
+        theme: 'grid',
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+          lineColor: [0, 0, 0],
+          lineWidth: 0.25
+        },
+        headStyles: {
+          fillColor: [37, 99, 235],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          halign: 'center'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 247, 250]
+        },
+        columnStyles: tab === 'permisos' ? {
+          0: { cellWidth: 55 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 35 },
+          3: { cellWidth: 35 },
+          4: { cellWidth: 15, halign: 'center' }
+        } : undefined
+      });
+
+      // Pie de página
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() - 8, { align: 'center' });
+      }
+
+      doc.save(`reporte_${tab}_CEIA_${selectedMonthsLabel}.pdf`);
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      alert('Error al generar el PDF: ' + error.message);
+    }
   };
 
   const shareWhatsApp = () => {
@@ -1350,6 +1503,55 @@ function Dashboard({ setView, setSelector }) {
             <MessageCircle size={18} /> <span className="hidden sm:inline">WhatsApp</span>
           </button>
         </div>
+      </div>
+
+      {/* SELECTOR DE MESES PARA REPORTE */}
+      <div style={{
+        background: 'linear-gradient(135deg, #f8fafc, #eef2ff)',
+        border: '1px solid #e2e8f0',
+        borderRadius: '16px',
+        padding: '1rem 1.5rem',
+        marginBottom: '1.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem',
+        flexWrap: 'wrap'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+          <Calendar size={18} style={{ color: 'var(--primary)' }} />
+          <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap' }}>Meses del Reporte:</span>
+        </div>
+        <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+          {MONTH_OPTIONS.map(mo => {
+            const isSelected = selectedMonths.includes(mo.value);
+            return (
+              <button
+                key={mo.value}
+                onClick={() => toggleMonth(mo.value)}
+                className="btn"
+                style={{
+                  padding: '0.35rem 0.85rem',
+                  fontSize: '0.8rem',
+                  fontWeight: isSelected ? 700 : 500,
+                  borderRadius: '99px',
+                  background: isSelected
+                    ? 'linear-gradient(135deg, var(--primary), #1e40af)'
+                    : 'white',
+                  color: isSelected ? 'white' : 'var(--text-muted)',
+                  border: isSelected ? 'none' : '1px solid #cbd5e1',
+                  boxShadow: isSelected ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer'
+                }}
+              >
+                {mo.label}
+              </button>
+            );
+          })}
+        </div>
+        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', marginLeft: 'auto' }}>
+          {selectedMonths.length === 1 ? '1 mes seleccionado' : `${selectedMonths.length} meses seleccionados`}
+        </span>
       </div>
 
       {loading ? (
