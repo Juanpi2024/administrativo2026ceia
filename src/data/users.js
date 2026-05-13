@@ -91,18 +91,6 @@ export const users = [
         "rut": "18894305-5"
     },
     {
-        "id": 14,
-        "name": "MARÍA JOSÉ MORALES SEPÚLVEDA",
-        "email": "maria.morales@slepla.gob.cl",
-        "role": "lector"
-    },
-    {
-        "id": 15,
-        "name": "MIGUEL ÁNGEL MORALES VELÁSQUEZ",
-        "email": "miguel.morales@slepla.gob.cl",
-        "role": "lector"
-    },
-    {
         "id": 16,
         "name": "PABLO RODRIGO PALMA CONTRERAS",
         "email": "pablo.palma@slepla.gob.cl",
@@ -139,12 +127,6 @@ export const users = [
         "rut": "10825508-0"
     },
     {
-        "id": 21,
-        "name": "FLAVIO RIGOBERTO ROBLES PINTO",
-        "email": "flavio.robles@slepla.gob.cl",
-        "role": "lector"
-    },
-    {
         "id": 22,
         "name": "VERÓNICA CECILIA SAAVEDRA BASCUÑÁN",
         "email": "veronica.saavedra@slepla.gob.cl",
@@ -164,12 +146,6 @@ export const users = [
         "email": "guillermo.sepulveda@slepla.gob.cl",
         "role": "lector",
         "rut": "12966640-4"
-    },
-    {
-        "id": 25,
-        "name": "CAROLINA ALEJANDRA SOTO PARRA",
-        "email": "carolina.soto@slepla.gob.cl",
-        "role": "lector"
     },
     {
         "id": 26,
@@ -198,12 +174,6 @@ export const users = [
         "email": "karla.burgos@slepla.gob.cl",
         "role": "lector",
         "rut": "18475309-K"
-    },
-    {
-        "id": 30,
-        "name": "MATÍAS MORALES",
-        "email": "matias.morales@slepla.gob.cl",
-        "role": "lector"
     },
     {
         "id": 31,
