@@ -993,13 +993,13 @@ function Dashboard({ setView, setSelector }) {
       const userPermisos = filteredPermisos.filter(p => p.funcionarioId === u.id || String(p.funcionarioId) === String(u.id));
       const totalUsados = userPermisos.reduce((acc, p) => acc + (p.diasUsados || 0), 0);
       if (userPermisos.length > 0) {
-        userPermisos.forEach(p => {
+        userPermisos.forEach((p, index) => {
           rows.push([
             u.name,
             u.rut || 'Sin Registro',
             `${p.fechaInicio}${p.fechaInicio !== p.fechaFin ? ' al ' + p.fechaFin : ''}`,
             p.jornada || 'Completa',
-            totalUsados
+            index === 0 ? totalUsados : ''
           ]);
         });
       } else {
