@@ -1113,19 +1113,55 @@ function Dashboard({ setView, setSelector }) {
   };
 
   // --- EXPORTAR PDF ---
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
     try {
       const monthsTitle = selectedMonths.map(m => MONTH_OPTIONS.find(o => o.value === m)?.label).filter(Boolean).join(', ');
       const doc = new jsPDF({ orientation: tab === 'licencias' ? 'landscape' : 'portrait' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      // Intentar cargar el logo del colegio
+      let logoLoaded = false;
+      try {
+        const logoImg = await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error('No se pudo cargar el logo'));
+          img.src = './logo_ceia.jpg';
+        });
+        // Agregar logo: x=14, y=10, ancho=22, alto=22
+        doc.addImage(logoImg, 'JPEG', 14, 10, 22, 22);
+        logoLoaded = true;
+      } catch (imgError) {
+        console.warn("No se pudo cargar el logo para el PDF, continuando sin él:", imgError);
+      }
+
+      // Dibujar membrete escolar formal para SLEP Los Álamos
+      const startTextX = logoLoaded ? 40 : 14;
       
-      // Título
-      doc.setFontSize(14);
+      doc.setFontSize(13);
       doc.setFont(undefined, 'bold');
-      doc.text(`Reporte de ${tab.charAt(0).toUpperCase() + tab.slice(1)} - CEIA`, 14, 15);
-      doc.setFontSize(10);
+      doc.setTextColor(37, 99, 235); // Color azul principal
+      doc.text("CEIA JUANITA ZÚÑIGA FUENTES", startTextX, 15);
+      
+      doc.setFontSize(9);
       doc.setFont(undefined, 'normal');
-      doc.text(`Periodo: ${monthsTitle} 2026`, 14, 22);
-      doc.text(`Generado: ${new Date().toLocaleDateString('es-CL')}`, 14, 28);
+      doc.setTextColor(100);
+      doc.text("Servicio Local de Educación Pública Los Álamos", startTextX, 20);
+
+      let reportTitle = "";
+      if (tab === 'permisos') reportTitle = "Reporte Consolidado de Permisos Administrativos";
+      else if (tab === 'oficios') reportTitle = "Reporte Consolidado de Oficios Cursados";
+      else if (tab === 'licencias') reportTitle = "Reporte Consolidado de Licencias Médicas";
+      else reportTitle = `Reporte Consolidado de ${tab.charAt(0).toUpperCase() + tab.slice(1)}`;
+
+      doc.text(reportTitle, startTextX, 25);
+      doc.text(`Periodo: ${monthsTitle} 2026  |  Generado: ${new Date().toLocaleDateString('es-CL')}`, startTextX, 30);
+      
+      // Línea divisoria
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.5);
+      doc.line(14, 35, pageWidth - 14, 35);
 
       let head = [];
       let body = [];
@@ -1160,7 +1196,7 @@ function Dashboard({ setView, setSelector }) {
       autoTable(doc, {
         head: head,
         body: body,
-        startY: 34,
+        startY: 40,
         theme: 'grid',
         styles: {
           fontSize: 8,
@@ -1186,7 +1222,35 @@ function Dashboard({ setView, setSelector }) {
         } : undefined
       });
 
-      // Pie de página
+      // Pie de firma del Director (última página)
+      let currentY = doc.lastAutoTable.finalY + 20;
+      
+      // Si no hay suficiente espacio para la firma (necesita ~40mm), agregar una página nueva
+      if (currentY + 40 > pageHeight - 15) {
+        doc.addPage();
+        currentY = 30;
+      }
+      
+      const lineWidth = 80;
+      const lineStartX = (pageWidth - lineWidth) / 2;
+      const lineEndX = lineStartX + lineWidth;
+      
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.line(lineStartX, currentY, lineEndX, currentY);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont(undefined, 'bold');
+      doc.text("JUAN JOSÉ ARAYA", pageWidth / 2, currentY + 5, { align: 'center' });
+      doc.setFont(undefined, 'normal');
+      doc.text("Director", pageWidth / 2, currentY + 10, { align: 'center' });
+      doc.text("CEIA Juanita Zúñiga Fuentes", pageWidth / 2, currentY + 15, { align: 'center' });
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text("Servicio Local de Educación Pública Los Álamos", pageWidth / 2, currentY + 20, { align: 'center' });
+
+      // Pie de página con numeración
       const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
