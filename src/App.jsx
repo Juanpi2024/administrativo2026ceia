@@ -1147,7 +1147,7 @@ function Dashboard({ setView, setSelector }) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'normal');
       doc.setTextColor(100);
-      doc.text("Servicio Local de Educación Pública Los Álamos", startTextX, 20);
+      doc.text("Dirigido a: Servicio Local de Educación Pública Los Álamos", startTextX, 20);
 
       let reportTitle = "";
       if (tab === 'permisos') reportTitle = "Reporte Consolidado de Permisos Administrativos";
@@ -1246,9 +1246,6 @@ function Dashboard({ setView, setSelector }) {
       doc.setFont(undefined, 'normal');
       doc.text("Director", pageWidth / 2, currentY + 10, { align: 'center' });
       doc.text("CEIA Juanita Zúñiga Fuentes", pageWidth / 2, currentY + 15, { align: 'center' });
-      doc.setFontSize(9);
-      doc.setTextColor(100);
-      doc.text("Servicio Local de Educación Pública Los Álamos", pageWidth / 2, currentY + 20, { align: 'center' });
 
       // Pie de página con numeración
       const pageCount = doc.getNumberOfPages();
